@@ -37,14 +37,19 @@ export default function Header() {
 
           {/* Right heart icon */}
           <div className="order-3 md:order-none mt-4 md:mt-0 flex items-center">
-            <button aria-label="Donate to PlaySafe">
-              <img
-                src="/heart.svg"
-                alt=""
-                className="h-[24px] w-[24px]"
-              />
-            </button>
-          </div>
+  <a
+    href="https://your-donate-link.com"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Donate to PlaySafe"
+  >
+    <img
+      src="/heart.svg"
+      alt="Donate"
+      className="h-[24px] w-[24px] hover:scale-130 transition-transform"
+    />
+  </a>
+</div>
 
         </div>
       </div>
