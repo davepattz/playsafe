@@ -1,6 +1,6 @@
 export default function Search() {
   return (
-    <div className="mt-4 w-full">
+    <div className="mt-4 w-full pb-4">
       <div className="max-w-[1222px] mx-auto px-0">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="relative mx-auto w-full max-w-[441px] h-[50px] md:mx-0 md:w-[441px]" style={{ width: 441, height: 50 }}>
