@@ -25,9 +25,22 @@ export default function Search() {
           <select className="border rounded p-2 h-10">
             <option>Platform</option>
           </select>
-          <select className="border rounded p-2 h-10">
-            <option>Sort</option>
-          </select>
+
+          <div className="flex items-center h-10 md:ml-auto">
+            <span className="text-[18px] font-normal font-['Lato'] mr-2">Sort:</span>
+            <div className="relative">
+              <select
+                aria-label="Sort"
+                defaultValue="Popular new releases"
+                className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right"
+              >
+                <option>Popular new releases</option>
+                <option>Price low to high</option>
+                <option>Price high to low</option>
+              </select>
+              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-[12px]">▼</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
