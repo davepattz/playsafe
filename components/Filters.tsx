@@ -2,7 +2,7 @@ export default function Filters() {
   return (
     <div className="mt-8 w-full pb-6"> {/* Bottom spacing below border */}
 
-      <div className="max-w-[1222px] mx-auto border-b border-black pb-8">
+      <div className="max-w-[1222px] mx-auto border-b-2 border-black pb-8">
         <div className="flex flex-col md:flex-row px-4">
         
         {/* Age */}

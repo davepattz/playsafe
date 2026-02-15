@@ -1,7 +1,7 @@
 export default function Header() {
   return (
     <header className="bg-white w-full">
-      <div className="max-w-[1222px] mx-auto border-b border-black">
+      <div className="max-w-[1222px] mx-auto border-b-2 border-black">
         <div className="flex flex-col md:flex-row md:h-16 items-center md:justify-between px-4 py-4 md:py-0 relative">
 
           {/* Logo */}
