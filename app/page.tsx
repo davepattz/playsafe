@@ -10,7 +10,7 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       <Header />
 
-      <section className="max-w-7xl mx-auto px-4">
+      <section className="max-w-[1222px] mx-auto px-0">
         <Filters />
         <Search />
 
