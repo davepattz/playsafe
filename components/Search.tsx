@@ -5,7 +5,7 @@ export default function Search() {
     <div className="mt-4 w-full pb-4">
       <div className="max-w-[1222px] mx-auto px-0">
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="relative mx-auto w-full max-w-[441px] h-[50px] md:mx-0 md:w-[441px]" style={{ width: 441, height: 50 }}>
+          <div className="relative mx-auto w-full max-w-[441px] h-[50px] sm:mx-0 sm:w-[441px]" style={{ width: 441, height: 50 }}>
             <input
               type="text"
               placeholder="Search games..."
@@ -43,7 +43,7 @@ export default function Search() {
           </div>
 
 
-          <div className="w-full sm:w-auto flex items-center h-10 md:ml-auto justify-center md:justify-end">
+          <div className="w-full sm:w-auto flex items-center h-10 sm:ml-auto justify-center sm:justify-end">
             <span className="text-[18px] font-normal font-['Lato'] mr-2">Sort:</span>
             <div className="relative">
               <select
