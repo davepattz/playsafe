@@ -24,10 +24,10 @@ export default function Search() {
             </button>
           </div>
 
-           <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-2 w-full sm:w-auto sm:flex-row sm:items-center">
             <span className="text-[18px] font-normal font-['Lato']">Platform:</span>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-1 sm:mt-0">
               <button type="button" aria-label="Filter Windows" className="w-8 h-8 flex items-center justify-center rounded-sm" onClick={() => {}}>
                 <img src="/win_logo.svg" alt="Windows" className="w-[22px] h-auto" />
               </button>
@@ -43,7 +43,7 @@ export default function Search() {
           </div>
 
 
-          <div className="flex items-center h-10 md:ml-auto">
+          <div className="w-full sm:w-auto flex items-center h-10 md:ml-auto justify-center md:justify-end">
             <span className="text-[18px] font-normal font-['Lato'] mr-2">Sort:</span>
             <div className="relative">
               <select
