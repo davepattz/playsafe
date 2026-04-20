@@ -40,15 +40,15 @@ export default function Search() {
             <span className="text-[18px] font-normal font-['Lato']">Platform:</span>
 
             <div className="flex items-center gap-2 mt-1 sm:mt-0">
-              <button type="button" aria-label="Filter Windows" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('windows')}>
+              <button type="button" aria-label="Filter Windows" title="Windows" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('windows')}>
                 <img src={selectedPlatforms.includes('windows') ? '/win_logo_selected.svg' : '/win_logo.svg'} alt="Windows" className="w-[22px] h-auto" />
               </button>
 
-              <button type="button" aria-label="Filter macOS" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('macos')}>
+              <button type="button" aria-label="Filter macOS" title="MacOS" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('macos')}>
                 <img src={selectedPlatforms.includes('macos') ? '/apple_logo_selected.svg' : '/apple_logo.svg'} alt="macOS" className="w-[22px] h-auto" />
               </button>
 
-              <button type="button" aria-label="Filter Linux" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('linux')}>
+              <button type="button" aria-label="Filter Linux" title="SteamOS/Linux" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('linux')}>
                 <img src={selectedPlatforms.includes('linux') ? '/steam_logo_selected.svg' : '/steam_logo.svg'} alt="Linux" className="w-[22px] h-auto" />
               </button>
             </div>
