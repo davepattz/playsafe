@@ -37,7 +37,7 @@ export default function Search() {
               </button>
 
               <button type="button" aria-label="Filter Linux" className="w-8 h-8 flex items-center justify-center rounded-sm" onClick={() => {}}>
-                <img src="/linux_logo.svg" alt="Linux" className="w-[22px] h-auto" />
+                <img src="/steam_logo.svg" alt="Linux" className="w-[22px] h-auto" />
               </button>
             </div>
           </div>
