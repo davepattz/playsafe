@@ -1,4 +1,5 @@
 import Header from "@/components/Header"
+import Title from "@/components/Title"
 import Filters from "@/components/Filters"
 import Search from "@/components/Search"
 import Results from "@/components/Results"
@@ -11,6 +12,7 @@ export default function Home() {
       <Header />
 
       <section className="max-w-[1222px] mx-auto px-0">
+        <Title />
         <Filters />
         <Search />
 
