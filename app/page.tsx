@@ -15,10 +15,10 @@ export default function Home() {
       <section className="max-w-[1222px] mx-auto px-0">
         <Title />
         <Filters />
-        <Search />
-        <Platform />
-
-        
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+          <Search />
+          <Platform />
+        </div>
       </section>
 
       <Footer />
