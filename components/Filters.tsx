@@ -8,7 +8,7 @@ export default function Filters() {
         {/* Filters */}
         <div className="w-full md:w-1/3 flex justify-center items-center gap-2 py-6 cursor-pointer">
           <span className="text-black text-[30px] font-bold font-['Lato'] leading-none">
-            Filters
+            Filter
           </span>
           <span className="text-black text-[12px] leading-none">▼</span>
         </div>
