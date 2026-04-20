@@ -3,9 +3,9 @@
 export default function Search() {
   return (
     <div className="mt-4 w-full pb-4">
-      <div className="flex flex-wrap items-center justify-center gap-4">
+      <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
         
-        <div className="relative w-full max-w-[600px] h-[50px] mx-auto">
+        <div className="relative w-full max-w-[441px] h-[50px] mx-auto md:mx-0">
           <input
             type="text"
             placeholder="Search games..."
