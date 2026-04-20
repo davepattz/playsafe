@@ -19,13 +19,13 @@ export default function Header() {
               href="/"
               className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
             >
-              Games
+              Search
             </a>
             <a
-              href="/news"
+              href="/blog"
               className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
             >
-              News
+              Blog
             </a>
             <a
               href="/faq"
