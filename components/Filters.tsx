@@ -3,10 +3,10 @@ export default function Filters() {
     <div className="mt-2 w-full pb-6">
 
       <div className="max-w-[1222px] mx-auto pb-8">
-        <div className="flex flex-col md:flex-row px-4">
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-4 md:gap-12 px-4">
         
         {/* Age */}
-        <div className="w-full md:w-1/3 flex justify-center items-center gap-2 py-6 cursor-pointer">
+        <div className="w-full md:w-[280px] flex justify-center items-center gap-2 py-6 cursor-pointer">
           <span className="text-black text-[30px] font-bold font-['Lato'] leading-none">
             Age
           </span>
@@ -14,7 +14,7 @@ export default function Filters() {
         </div>
 
         {/* Genre */}
-        <div className="w-full md:w-1/3 flex justify-center items-center gap-2 py-6 cursor-pointer">
+        <div className="w-full md:w-[280px] flex justify-center items-center gap-2 py-6 cursor-pointer">
           <span className="text-black text-[30px] font-bold font-['Lato'] leading-none">
             Genre
           </span>
@@ -22,7 +22,7 @@ export default function Filters() {
         </div>
 
         {/* Play Style */}
-        <div className="w-full md:w-1/3 flex justify-center items-center gap-2 py-6 cursor-pointer">
+        <div className="w-full md:w-[280px] flex justify-center items-center gap-2 py-6 cursor-pointer">
           <span className="text-black text-[30px] font-bold font-['Lato'] leading-none">
             Play Style
           </span>
