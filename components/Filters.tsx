@@ -19,11 +19,17 @@ const playStyleOptions = [
 
 const gameTypeOptions = [
   "Action",
-  "Adventure",
-  "RPG",
-  "Simulation",
-  "Strategy",
-  "Sports & Racing"
+  "Casual",
+  "Cute",
+  "Funny",
+  "Open World",
+  "Party",
+  "Physics",
+  "Platformer",
+  "Puzzle",
+  "Racing",
+  "Sandbox",
+  "Sports"
 ];
 
 const filterOptions = [
