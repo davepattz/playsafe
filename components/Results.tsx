@@ -12,18 +12,17 @@ export default function Results() {
             </div>
 
             {/* Second Column - Info */}
-            <div className="flex-grow p-5 flex flex-col justify-start gap-1">
-              <h3 className="font-['Lato'] font-bold text-[18px] text-black leading-tight">
+            <div className="flex-grow p-5 flex flex-col justify-start gap-2">
+              <h3 className="font-['Lato'] font-bold text-[20px] text-black leading-tight">
                 Game Title Placeholder
               </h3>
               <p className="font-['Lato'] font-bold text-[16px] text-black/70 line-clamp-2">
                 This is a brief game description that explains the core mechanics and theme of the safety-rated game.
               </p>
-              <div className="mt-auto flex gap-3">
-                {/* Platform Icon Placeholders */}
-                <div className="w-5 h-5 bg-black/10 rounded-sm" title="Windows" />
-                <div className="w-5 h-5 bg-black/10 rounded-sm" title="macOS" />
-                <div className="w-5 h-5 bg-black/10 rounded-sm" title="Linux" />
+              <div className="mt-auto flex gap-4">
+                <img src="/win_logo.svg" alt="Windows" className="w-[26px] h-auto" />
+                <img src="/apple_logo.svg" alt="macOS" className="w-[26px] h-auto" />
+                <img src="/steam_logo.svg" alt="SteamOS/Linux" className="w-[26px] h-auto" />
               </div>
             </div>
 
