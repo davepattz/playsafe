@@ -27,11 +27,13 @@ const gameTypeOptions = [
 ];
 
 const filterOptions = [
-  "Top Rated",
-  "New Releases",
-  "On Sale",
-  "Controller Support",
-  "Steam Deck Verified"
+  "🚫 Nudity",
+  "🚫 Mature",
+  "🚫 Violent",
+  "🚫 Gore",
+  "🚫 Difficult",
+  "🚫 Shooter",
+  "🚫 Horror",
 ];
 
 export default function Filters() {
@@ -85,7 +87,7 @@ export default function Filters() {
           </div>
           <div className="flex flex-wrap justify-center gap-2 mt-4">
             {selectedFilters.map(filter => (
-              <div key={filter} className="bg-[#b185e8] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
+              <div key={filter} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
                 <span className="text-black text-[14px] font-bold font-['Lato']">{filter}</span>
                 <button 
                   type="button" 

@@ -29,7 +29,7 @@ export default function Results() {
             {/* Third Column - Price & Date */}
             <div className="p-5 pt-0 md:pt-5 flex flex-col justify-between items-end md:min-w-[180px]">
               <div className="font-['Lato'] font-bold text-[30px] text-black leading-none">
-                £24.99
+                $24.99
               </div>
               <div className="font-['Lato'] font-bold text-[14px] text-black uppercase mt-2 md:mt-0">
                 SEP 5, 2025
