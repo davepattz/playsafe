@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from 'react';
-
-const playStyleOptions = [
+export const playStyleOptions = [
   "Single-player",
   "Multi-player",
   "PvP",
@@ -17,7 +15,7 @@ const playStyleOptions = [
   "Cross-Platform Multiplayer"
 ];
 
-const gameTypeOptions = [
+export const gameTypeOptions = [
   "Action",
   "Casual",
   "Cute",
@@ -33,7 +31,7 @@ const gameTypeOptions = [
   "Sports"
 ];
 
-const filterOptions = [
+export const filterOptions = [
   "Nudity",
   "Mature",
   "Violent",
@@ -43,11 +41,23 @@ const filterOptions = [
   "Horror",
 ];
 
-export default function Filters() {
-  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>([]);
-  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+interface FiltersProps {
+  selectedPlayStyles: string[];
+  setSelectedPlayStyles: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedGameTypes: string[];
+  setSelectedGameTypes: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedFilters: string[];
+  setSelectedFilters: React.Dispatch<React.SetStateAction<string[]>>;
+}
 
+export default function Filters({
+  selectedPlayStyles,
+  setSelectedPlayStyles,
+  selectedGameTypes,
+  setSelectedGameTypes,
+  selectedFilters,
+  setSelectedFilters,
+}: FiltersProps) {
   const handleSelect = (
     e: React.ChangeEvent<HTMLSelectElement>,
     current: string[],

@@ -2,9 +2,19 @@
 
 import { useState } from 'react';
 
-export default function Search() {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+interface SearchProps {
+  selectedPlatforms: string[];
+  setSelectedPlatforms: React.Dispatch<React.SetStateAction<string[]>>;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
 
+export default function Search({
+  selectedPlatforms,
+  setSelectedPlatforms,
+  searchQuery,
+  setSearchQuery
+}: SearchProps) {
   const togglePlatform = (platform: string) => {
     setSelectedPlatforms(prev =>
       prev.includes(platform)
@@ -21,6 +31,8 @@ export default function Search() {
             <input
               type="text"
               placeholder="Search games..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-full bg-white border-2 border-black rounded-full px-4 pr-12 outline-none placeholder-black"
               style={{ fontFamily: 'Lato, Arial, sans-serif', fontSize: 19, fontWeight: 400 }}
             />
