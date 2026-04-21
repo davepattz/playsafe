@@ -21,6 +21,7 @@ const gameTypeOptions = [
   "Action",
   "Casual",
   "Cute",
+  "Fighting",
   "Funny",
   "Open World",
   "Party",
@@ -33,13 +34,13 @@ const gameTypeOptions = [
 ];
 
 const filterOptions = [
-  "🚫 Nudity",
-  "🚫 Mature",
-  "🚫 Violent",
-  "🚫 Gore",
-  "🚫 Difficult",
-  "🚫 Shooter",
-  "🚫 Horror",
+  "Nudity",
+  "Mature",
+  "Violent",
+  "Gore",
+  "Difficult",
+  "Shooter",
+  "Horror",
 ];
 
 export default function Filters() {
@@ -76,7 +77,7 @@ export default function Filters() {
         <div className="w-full md:w-1/3 flex flex-col items-center py-6">
           <div className="relative flex justify-center items-center gap-2 cursor-pointer">
             <span className="text-black text-[30px] font-bold font-['Lato'] leading-none">
-              Filters
+              Hide
             </span>
             <span className="text-black text-[12px] leading-none">▼</span>
             <select
@@ -93,7 +94,7 @@ export default function Filters() {
           </div>
           <div className="flex flex-wrap justify-center gap-2 mt-4">
             {selectedFilters.map(filter => (
-              <div key={filter} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
+              <div key={filter} className="bg-[#b185e8] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
                 <span className="text-black text-[14px] font-bold font-['Lato']">{filter}</span>
                 <button 
                   type="button" 
