@@ -17,6 +17,7 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["windows", "macos", "linux"]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSort, setSelectedSort] = useState("Popular new releases");
 
   return (
     <main className="min-h-screen bg-white">
@@ -37,6 +38,8 @@ export default function Home() {
           setSelectedPlatforms={setSelectedPlatforms}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          selectedSort={selectedSort}
+          setSelectedSort={setSelectedSort}
         />
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">

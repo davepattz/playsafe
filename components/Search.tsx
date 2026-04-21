@@ -7,13 +7,17 @@ interface SearchProps {
   setSelectedPlatforms: React.Dispatch<React.SetStateAction<string[]>>;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  selectedSort: string;
+  setSelectedSort: (sort: string) => void;
 }
 
 export default function Search({
   selectedPlatforms,
   setSelectedPlatforms,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  selectedSort,
+  setSelectedSort
 }: SearchProps) {
   const togglePlatform = (platform: string) => {
     setSelectedPlatforms(prev =>
@@ -72,8 +76,9 @@ export default function Search({
             <div className="relative">
               <select
                 aria-label="Sort"
-                defaultValue="Popular new releases"
-                className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+                className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right outline-none cursor-pointer"
               >
                 <option>Popular new releases</option>
                 <option>Price low to high</option>
