@@ -15,7 +15,7 @@ export default function Home() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
   // Defaulting to "Hide All" problematic content for maximum safety
   const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["windows", "macos", "linux"]);
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
