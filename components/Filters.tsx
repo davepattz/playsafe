@@ -116,6 +116,15 @@ export default function Filters({
               </div>
             ))}
           </div>
+          {selectedFilters.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedFilters([])}
+              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Game type */}
@@ -151,6 +160,15 @@ export default function Filters({
               </div>
             ))}
           </div>
+          {selectedGameTypes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedGameTypes([])}
+              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Play Style */}
@@ -188,8 +206,34 @@ export default function Filters({
               </div>
             ))}
           </div>
+          {selectedPlayStyles.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedPlayStyles([])}
+              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+            >
+              Clear
+            </button>
+          )}
         </div>
         </div>
+
+        {/* Global Clear All */}
+        {(selectedFilters.length > 0 || selectedGameTypes.length > 0 || selectedPlayStyles.length > 0) && (
+          <div className="flex justify-center mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedFilters([]);
+                setSelectedGameTypes([]);
+                setSelectedPlayStyles([]);
+              }}
+              className="text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
       </div>
 
     </div>
