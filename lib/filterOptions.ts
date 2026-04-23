@@ -33,16 +33,21 @@ export const gameTypeOptions = [
 
 export const filterOptions = [
   "Combat",
+  "Dark Humor",
   "Dark Comedy",
   "Dating Sim",
   "Difficult",
   "Fighting",
   "Gore",
+  "Hack and Slash",
   "Hentai",
   "Horror",
   "Mature",
+  "NSFW",
   "Nudity",
   "Psychological",
+  "Psychological Horror",
   "Shooter",
+  "Third-Person Shooter",
   "Violent",
 ];
