@@ -1,6 +1,30 @@
 "use client";
 
-export default function Search() {
+interface SearchProps {
+  selectedPlatforms: string[];
+  setSelectedPlatforms: React.Dispatch<React.SetStateAction<string[]>>;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedSort: string;
+  setSelectedSort: (sort: string) => void;
+}
+
+export default function Search({
+  selectedPlatforms,
+  setSelectedPlatforms,
+  searchQuery,
+  setSearchQuery,
+  selectedSort,
+  setSelectedSort
+}: SearchProps) {
+  const togglePlatform = (platform: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
   return (
     <div className="mt-4 w-full pb-4">
       <div className="max-w-[1222px] mx-auto px-0">
@@ -9,6 +33,8 @@ export default function Search() {
             <input
               type="text"
               placeholder="Search games..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-full bg-white border-2 border-black rounded-full px-4 pr-12 outline-none placeholder-black"
               style={{ fontFamily: 'Lato, Arial, sans-serif', fontSize: 19, fontWeight: 400 }}
             />
@@ -28,30 +54,35 @@ export default function Search() {
             <span className="text-[18px] font-normal font-['Lato']">Platform:</span>
 
             <div className="flex items-center gap-2 mt-1 sm:mt-0">
-              <button type="button" aria-label="Filter Windows" className="w-8 h-8 flex items-center justify-center rounded-sm" onClick={() => {}}>
-                <img src="/win_logo.svg" alt="Windows" className="w-[22px] h-auto" />
+              <button type="button" aria-label="Filter Windows" title="Windows" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('windows')}>
+                <img src={selectedPlatforms.includes('windows') ? '/win_logo_selected.svg' : '/win_logo.svg'} alt="Windows" className="w-[22px] h-auto" />
               </button>
 
-              <button type="button" aria-label="Filter macOS" className="w-8 h-8 flex items-center justify-center rounded-sm" onClick={() => {}}>
-                <img src="/apple_logo.svg" alt="macOS" className="w-[22px] h-auto" />
+              <button type="button" aria-label="Filter macOS" title="MacOS" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('macos')}>
+                <img src={selectedPlatforms.includes('macos') ? '/apple_logo_selected.svg' : '/apple_logo.svg'} alt="macOS" className="w-[22px] h-auto" />
               </button>
 
-              <button type="button" aria-label="Filter Linux" className="w-8 h-8 flex items-center justify-center rounded-sm" onClick={() => {}}>
-                <img src="/linux_logo.svg" alt="Linux" className="w-[22px] h-auto" />
+              <button type="button" aria-label="Filter Linux" title="SteamOS/Linux" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('linux')}>
+                <img src={selectedPlatforms.includes('linux') ? '/steam_logo_selected.svg' : '/steam_logo.svg'} alt="Linux" className="w-[22px] h-auto" />
               </button>
             </div>
           </div>
 
 
-          <div className="w-full sm:w-auto flex items-center h-10 sm:ml-auto justify-center sm:justify-end">
-            <span className="text-[18px] font-normal font-['Lato'] mr-2">Sort:</span>
-            <div className="relative">
+          <div className="w-full sm:w-auto flex items-center h-10 sm:ml-auto justify-center sm:justify-end gap-2">
+            <span className="text-[18px] font-normal font-['Lato']">Sort:</span>
+            <div className="relative inline-flex items-center">
               <select
                 aria-label="Sort"
-                defaultValue="Popular new releases"
-                className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+                className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right outline-none cursor-pointer"
               >
-                <option>Popular new releases</option>
+                <option>New releases</option>
+                <option>Release date ascending</option>
+                <option>Release date descending</option>
+                <option>Title A-Z</option>
+                <option>Title Z-A</option>
                 <option>Price low to high</option>
                 <option>Price high to low</option>
               </select>

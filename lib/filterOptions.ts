@@ -1,0 +1,47 @@
+export const playStyleOptions = [
+  "Single-player",
+  "Multi-player",
+  "PvP",
+  "Online PvP",
+  "LAN PvP",
+  "Shared/Split Screen PvP",
+  "Co-op",
+  "Online Co-op",
+  "LAN Co-op",
+  "Shared/Split Screen Co-op",
+  "Shared/Split Screen",
+  "Cross-Platform Multiplayer",
+];
+
+export const gameTypeOptions = [
+  "2D",
+  "Action",
+  "Casual",
+  "Cute",
+  "Funny",
+  "Open World",
+  "Party",
+  "Physics",
+  "Platformer",
+  "Puzzle",
+  "Racing",
+  "RPG",
+  "Sandbox",
+  "Sports",
+];
+
+export const filterOptions = [
+  "Combat",
+  "Dark Comedy",
+  "Dating Sim",
+  "Difficult",
+  "Fighting",
+  "Gore",
+  "Hentai",
+  "Horror",
+  "Mature",
+  "Nudity",
+  "Psychological",
+  "Shooter",
+  "Violent",
+];
