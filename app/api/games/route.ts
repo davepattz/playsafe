@@ -213,14 +213,6 @@ function matchesPlayStyles(
   );
 }
 
-function matchesSearchQuery(title: string, searchQuery: string) {
-  if (!searchQuery) {
-    return true;
-  }
-
-  return title.toLowerCase().includes(searchQuery.toLowerCase());
-}
-
 function parsePriceValue(price: string) {
   if (price.toLowerCase() === "free") {
     return 0;
@@ -243,9 +235,9 @@ function sortGames(games: SteamGame[], selectedSort: string) {
   return games;
 }
 
-async function fetchSearchBatch(start: number) {
+async function fetchSearchBatch(start: number, searchQuery: string) {
   const params = new URLSearchParams({
-    query: "",
+    query: searchQuery,
     start: String(start),
     count: String(SEARCH_BATCH_SIZE),
     dynamic_data: "",
@@ -358,7 +350,7 @@ export async function GET(request: Request) {
 
     for (let batchIndex = 0; batchIndex < MAX_BATCHES; batchIndex += 1) {
       const start = batchIndex * SEARCH_BATCH_SIZE;
-      const items = await fetchSearchBatch(start);
+      const items = await fetchSearchBatch(start, searchQuery);
 
       if (items.length === 0) {
         break;
@@ -370,10 +362,6 @@ export async function GET(request: Request) {
         }
 
         seenAppIds.add(item.appId);
-
-        if (!matchesSearchQuery(item.title, searchQuery)) {
-          continue;
-        }
 
         if (!matchesPlatforms(item.platforms, selectedPlatforms)) {
           continue;
