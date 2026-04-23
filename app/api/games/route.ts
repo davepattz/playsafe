@@ -6,13 +6,22 @@ import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
 const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
-const STEAM_COUNTRY_CODE = "AU";
+const STEAM_COUNTRY_CODE = "US";
 const DEFAULT_LIMIT = 10;
 const SEARCH_BATCH_SIZE = 50;
 const MAX_BATCHES = 4;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
+
+const SUPPORTED_STEAM_COUNTRIES = new Set([
+  "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
+  "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HK", "HU", "IS", "IN",
+  "ID", "IE", "IL", "IT", "JP", "KZ", "KR", "KW", "LV", "LT", "LU", "MY",
+  "MT", "MX", "ME", "NL", "NZ", "NO", "PE", "PH", "PL", "PT", "QA", "RO",
+  "SA", "RS", "SG", "SK", "SI", "ZA", "ES", "SE", "CH", "TW", "TH", "TR",
+  "UA", "AE", "GB", "US", "UY", "VN",
+]);
 
 interface SteamSearchItem {
   appId: number;
@@ -88,6 +97,79 @@ function getSelectedPlatforms(searchParams: URLSearchParams): PlatformKey[] {
   }
 
   return selected;
+}
+
+function getCountryFromAcceptLanguage(acceptLanguage: string | null) {
+  if (!acceptLanguage) {
+    return null;
+  }
+
+  for (const locale of acceptLanguage.split(",")) {
+    const regionMatch = locale.trim().match(/-(\w{2})\b/);
+
+    if (!regionMatch) {
+      continue;
+    }
+
+    const countryCode = regionMatch[1].toUpperCase();
+
+    if (SUPPORTED_STEAM_COUNTRIES.has(countryCode)) {
+      return countryCode;
+    }
+  }
+
+  return null;
+}
+
+function getCountryFromTimeZone(timeZone: string | null) {
+  if (!timeZone) {
+    return null;
+  }
+
+  const normalizedTimeZone = timeZone.trim();
+
+  if (normalizedTimeZone.startsWith("Australia/")) {
+    return "AU";
+  }
+
+  if (normalizedTimeZone.startsWith("America/")) {
+    return "US";
+  }
+
+  if (normalizedTimeZone === "Pacific/Auckland") {
+    return "NZ";
+  }
+
+  if (normalizedTimeZone.startsWith("Europe/London")) {
+    return "GB";
+  }
+
+  return null;
+}
+
+function getSteamCountryCode(request: Request, searchParams: URLSearchParams) {
+  const headerCandidates = [
+    request.headers.get("x-vercel-ip-country"),
+    request.headers.get("cf-ipcountry"),
+    request.headers.get("x-country-code"),
+    request.headers.get("cloudfront-viewer-country"),
+  ];
+
+  for (const headerValue of headerCandidates) {
+    const countryCode = headerValue?.toUpperCase();
+
+    if (countryCode && SUPPORTED_STEAM_COUNTRIES.has(countryCode)) {
+      return countryCode;
+    }
+  }
+
+  const timeZoneCountry = getCountryFromTimeZone(searchParams.get("timezone"));
+
+  if (timeZoneCountry) {
+    return timeZoneCountry;
+  }
+
+  return getCountryFromAcceptLanguage(request.headers.get("accept-language")) ?? STEAM_COUNTRY_CODE;
 }
 
 function stripHtml(value: string) {
@@ -279,12 +361,12 @@ function sortGames(games: SteamGame[], selectedSort: string) {
   return games;
 }
 
-async function fetchSearchBatch(start: number, searchQuery: string) {
+async function fetchSearchBatch(start: number, searchQuery: string, countryCode: string) {
   const params = new URLSearchParams({
     term: searchQuery,
     start: String(start),
     count: String(SEARCH_BATCH_SIZE),
-    cc: STEAM_COUNTRY_CODE,
+    cc: countryCode,
     dynamic_data: "",
     sort_by: "Released_DESC",
     supportedlang: "english",
@@ -311,10 +393,10 @@ async function fetchSearchBatch(start: number, searchQuery: string) {
   return parseSearchResults(payload.results_html ?? "");
 }
 
-async function fetchAppDetails(appId: number) {
+async function fetchAppDetails(appId: number, countryCode: string) {
   const params = new URLSearchParams({
     appids: String(appId),
-    cc: STEAM_COUNTRY_CODE,
+    cc: countryCode,
     l: "english",
   });
 
@@ -370,6 +452,7 @@ function matchesHiddenLabels(hoverTags: string[], hiddenLabels: string[]) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const countryCode = getSteamCountryCode(request, searchParams);
     const rawFilters: FilterGroups = {
       gameTypes: getMultiValue(searchParams, "gameTypes"),
       playStyles: getMultiValue(searchParams, "playStyles"),
@@ -396,7 +479,7 @@ export async function GET(request: Request) {
 
     for (let batchIndex = 0; batchIndex < MAX_BATCHES; batchIndex += 1) {
       const start = batchIndex * SEARCH_BATCH_SIZE;
-      const items = await fetchSearchBatch(start, searchQuery);
+      const items = await fetchSearchBatch(start, searchQuery, countryCode);
 
       if (items.length === 0) {
         break;
@@ -436,7 +519,7 @@ export async function GET(request: Request) {
         break;
       }
 
-        const details = await fetchAppDetails(match.appId);
+        const details = await fetchAppDetails(match.appId, countryCode);
         const hoverTags = await fetchHoverTags(match.appId);
 
         if (details?.type && details.type !== "game") {
@@ -483,6 +566,7 @@ export async function GET(request: Request) {
       filters,
       platforms: selectedPlatforms,
       sort: selectedSort,
+      countryCode,
       query: searchQuery,
       tags: {
         gameTypes: gameTypeTags,

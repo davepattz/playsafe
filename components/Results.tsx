@@ -61,6 +61,14 @@ export default function Results({
       params.append("platforms", platform);
     });
 
+    if (typeof Intl !== "undefined") {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      if (timeZone) {
+        params.set("timezone", timeZone);
+      }
+    }
+
     params.set("query", searchQuery);
     params.set("sort", selectedSort);
     params.set("limit", "10");
