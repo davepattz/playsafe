@@ -32,7 +32,7 @@ export const TAG_MAP: Record<string, number> = {
   Mature: 5611,
   Violent: 4667,
   Gore: 4345,
-  Difficult: 3871,
+  Difficult: 4026,
   Shooter: 1775,
   Horror: 1667,
 };
