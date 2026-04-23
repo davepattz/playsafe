@@ -26,6 +26,8 @@ export const badLanguageTerms = [
   "prick",
   "shit",
   "shitty",
+  "sins",
+  "sinner",
   "slut",
   "whore",
 ];
