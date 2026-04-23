@@ -14,10 +14,10 @@ export const playStyleOptions = [
 ];
 
 export const gameTypeOptions = [
+  "2D",
   "Action",
   "Casual",
   "Cute",
-  "Fighting",
   "Funny",
   "Open World",
   "Party",
@@ -25,16 +25,20 @@ export const gameTypeOptions = [
   "Platformer",
   "Puzzle",
   "Racing",
+  "RPG",
   "Sandbox",
   "Sports",
 ];
 
 export const filterOptions = [
+  "Combat",
+  "Dark Comedy",
   "Nudity",
   "Mature",
   "Violent",
   "Gore",
   "Difficult",
+  "Fighting",
   "Shooter",
   "Horror",
 ];

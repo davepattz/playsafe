@@ -1,4 +1,5 @@
 export const TAG_MAP: Record<string, number> = {
+  "2D": 3871,
   "Single-player": 4182,
   "Multi-player": 3859,
   "PvP": 1774,
@@ -13,7 +14,9 @@ export const TAG_MAP: Record<string, number> = {
   "Cross-Platform Multiplayer": 27,
   Action: 19,
   Casual: 597,
+  Combat: 3993,
   Cute: 4726,
+  "Dark Comedy": 1649,
   Fighting: 1743,
   Funny: 4136,
   "Open World": 1695,
@@ -22,6 +25,7 @@ export const TAG_MAP: Record<string, number> = {
   Platformer: 1625,
   Puzzle: 1664,
   Racing: 699,
+  RPG: 122,
   Sandbox: 3810,
   Sports: 701,
   Nudity: 6650,
