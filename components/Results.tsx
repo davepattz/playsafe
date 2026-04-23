@@ -17,6 +17,7 @@ interface GameResult {
 
 interface GamesResponse {
   games: GameResult[];
+  hasMore: boolean;
   error?: string;
 }
 
@@ -39,11 +40,31 @@ export default function Results({
 }: ResultsProps) {
   const [games, setGames] = useState<GameResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [queryVersion, setQueryVersion] = useState(0);
+
+  useEffect(() => {
+    setGames([]);
+    setPage(1);
+    setHasMore(false);
+    setError(null);
+    setQueryVersion((value) => value + 1);
+  }, [
+    searchQuery,
+    selectedFilters,
+    selectedGameTypes,
+    selectedPlatforms,
+    selectedPlayStyles,
+    selectedSort,
+  ]);
 
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams();
+    const isFirstPage = page === 1;
 
     selectedGameTypes.forEach((gameType) => {
       params.append("gameTypes", gameType);
@@ -71,11 +92,15 @@ export default function Results({
 
     params.set("query", searchQuery);
     params.set("sort", selectedSort);
-    params.set("limit", "10");
+    params.set("limit", "30");
+    params.set("page", String(page));
 
     const fetchGames = async () => {
-      setIsLoading(true);
-      setError(null);
+      if (isFirstPage) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
 
       try {
         const response = await fetch(`/api/games?${params.toString()}`, {
@@ -87,7 +112,17 @@ export default function Results({
           throw new Error(data.error ?? "Failed to fetch games");
         }
 
-        setGames(data.games);
+        setGames((currentGames) => {
+          if (isFirstPage) {
+            return data.games;
+          }
+
+          const existingIds = new Set(currentGames.map((game) => game.id));
+          const nextGames = data.games.filter((game) => !existingIds.has(game.id));
+
+          return [...currentGames, ...nextGames];
+        });
+        setHasMore(data.hasMore);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -95,10 +130,19 @@ export default function Results({
 
         console.error("Failed to fetch games", error);
         setError("Could not load Steam results right now.");
-        setGames([]);
+
+        if (isFirstPage) {
+          setGames([]);
+        }
+
+        setHasMore(false);
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false);
+          if (isFirstPage) {
+            setIsLoading(false);
+          } else {
+            setIsLoadingMore(false);
+          }
         }
       }
     };
@@ -109,6 +153,8 @@ export default function Results({
       controller.abort();
     };
   }, [
+    page,
+    queryVersion,
     searchQuery,
     selectedFilters,
     selectedGameTypes,
@@ -192,6 +238,25 @@ export default function Results({
               </div>
             </a>
           ))}
+
+        {isLoadingMore && (
+          <div className="p-6 font-['Lato'] text-[18px] font-bold text-black">
+            Loading more games...
+          </div>
+        )}
+
+        {!isLoading && !error && hasMore && (
+          <div className="flex justify-center p-6">
+            <button
+              type="button"
+              onClick={() => setPage((currentPage) => currentPage + 1)}
+              disabled={isLoadingMore}
+              className="font-['Lato'] text-[18px] font-bold text-black hover:opacity-70 disabled:opacity-50"
+            >
+              Load more
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

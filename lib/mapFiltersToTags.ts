@@ -19,11 +19,21 @@ export function mapFiltersToTags(filters: FilterGroups): MappedTags {
 
   const addTags = (items: string[], target: number[]) => {
     items.forEach((label) => {
-      const tagId = TAG_MAP[label];
+      const mappedTag = TAG_MAP[label];
 
-      if (typeof tagId === "number" && !target.includes(tagId)) {
-        target.push(tagId);
+      if (typeof mappedTag === "number") {
+        if (!target.includes(mappedTag)) {
+          target.push(mappedTag);
+        }
+
+        return;
       }
+
+      mappedTag?.forEach((tagId) => {
+        if (!target.includes(tagId)) {
+          target.push(tagId);
+        }
+      });
     });
   };
 

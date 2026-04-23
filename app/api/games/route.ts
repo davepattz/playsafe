@@ -8,9 +8,10 @@ const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
 const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
 const STEAM_COUNTRY_CODE = "US";
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
-const MAX_BATCHES = 4;
+const DEFAULT_MAX_BATCHES = 4;
+const FILTERED_MAX_BATCHES = 12;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
@@ -489,12 +490,26 @@ export async function GET(request: Request) {
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
     );
+    const page = Math.max(
+      Number.parseInt(searchParams.get("page") ?? "1", 10) || 1,
+      1,
+    );
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
+    const hasActiveFilters =
+      filters.gameTypes.length > 0 ||
+      filters.playStyles.length > 0 ||
+      filters.hidden.length > 0 ||
+      selectedPlatforms.length > 0 ||
+      searchQuery.length > 0;
+    const maxBatches = hasActiveFilters ? FILTERED_MAX_BATCHES : DEFAULT_MAX_BATCHES;
 
     const matches: SteamSearchItem[] = [];
     const seenAppIds = new Set<number>();
 
-    for (let batchIndex = 0; batchIndex < MAX_BATCHES; batchIndex += 1) {
+    for (let batchIndex = 0; batchIndex < maxBatches; batchIndex += 1) {
       const start = batchIndex * SEARCH_BATCH_SIZE;
       const items = await fetchSearchBatch(start, searchQuery, countryCode);
 
@@ -530,15 +545,15 @@ export async function GET(request: Request) {
     }
 
     const acceptedGames: SteamGame[] = [];
+    const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
 
     for (const match of matches) {
-      if (acceptedGames.length >= limit) {
-        break;
-      }
+        if (acceptedGames.length >= targetAcceptedCount) {
+          break;
+        }
 
         const details = await fetchAppDetails(match.appId, countryCode);
         const hoverTags = await fetchHoverTags(match.appId);
-        const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
 
         if (details?.type && details.type !== "game") {
           continue;
@@ -586,10 +601,14 @@ export async function GET(request: Request) {
         });
     }
 
-    const games = sortGames(acceptedGames, selectedSort);
+    const sortedGames = sortGames(acceptedGames, selectedSort);
+    const games = sortedGames.slice(startIndex, endIndex);
+    const hasMore = sortedGames.length > endIndex;
 
     return NextResponse.json({
       filters,
+      page,
+      hasMore,
       platforms: selectedPlatforms,
       sort: selectedSort,
       countryCode,
@@ -599,7 +618,7 @@ export async function GET(request: Request) {
         playStyles: filters.playStyles,
         hidden: hiddenTags,
       },
-      total: games.length,
+      total: sortedGames.length,
       games,
     });
   } catch (error) {

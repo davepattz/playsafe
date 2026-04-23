@@ -1,4 +1,4 @@
-export const TAG_MAP: Record<string, number> = {
+export const TAG_MAP: Record<string, number | number[]> = {
   "2D": 3871,
   "Single-player": 4182,
   "Multi-player": 3859,
@@ -27,7 +27,7 @@ export const TAG_MAP: Record<string, number> = {
   Hentai: 9130,
   NSFW: 24904,
   "Open World": 1695,
-  Party: 7108,
+  Party: [7108, 7178],
   Physics: 3968,
   Platformer: 1625,
   Psychological: 5186,
