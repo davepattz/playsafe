@@ -6,6 +6,7 @@ import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
 const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
+const STEAM_COUNTRY_CODE = "AU";
 const DEFAULT_LIMIT = 10;
 const SEARCH_BATCH_SIZE = 50;
 const MAX_BATCHES = 4;
@@ -244,13 +245,35 @@ function parsePriceValue(price: string) {
   return Number.isFinite(numericValue) ? numericValue : Number.POSITIVE_INFINITY;
 }
 
+function parseReleaseDateValue(releaseDate: string) {
+  const parsedValue = Date.parse(releaseDate);
+
+  return Number.isNaN(parsedValue) ? 0 : parsedValue;
+}
+
 function sortGames(games: SteamGame[], selectedSort: string) {
+  if (selectedSort === "Title A-Z") {
+    return [...games].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  if (selectedSort === "Title Z-A") {
+    return [...games].sort((a, b) => b.name.localeCompare(a.name));
+  }
+
   if (selectedSort === "Price low to high") {
     return [...games].sort((a, b) => parsePriceValue(a.price) - parsePriceValue(b.price));
   }
 
   if (selectedSort === "Price high to low") {
     return [...games].sort((a, b) => parsePriceValue(b.price) - parsePriceValue(a.price));
+  }
+
+  if (selectedSort === "Release date ascending") {
+    return [...games].sort((a, b) => parseReleaseDateValue(a.releaseDate) - parseReleaseDateValue(b.releaseDate));
+  }
+
+  if (selectedSort === "Release date descending" || selectedSort === "New releases") {
+    return [...games].sort((a, b) => parseReleaseDateValue(b.releaseDate) - parseReleaseDateValue(a.releaseDate));
   }
 
   return games;
@@ -261,6 +284,7 @@ async function fetchSearchBatch(start: number, searchQuery: string) {
     term: searchQuery,
     start: String(start),
     count: String(SEARCH_BATCH_SIZE),
+    cc: STEAM_COUNTRY_CODE,
     dynamic_data: "",
     sort_by: "Released_DESC",
     supportedlang: "english",
@@ -290,6 +314,7 @@ async function fetchSearchBatch(start: number, searchQuery: string) {
 async function fetchAppDetails(appId: number) {
   const params = new URLSearchParams({
     appids: String(appId),
+    cc: STEAM_COUNTRY_CODE,
     l: "english",
   });
 
@@ -358,7 +383,7 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "Popular new releases";
+    const selectedSort = searchParams.get("sort") ?? "New releases";
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,

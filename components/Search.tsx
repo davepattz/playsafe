@@ -69,16 +69,20 @@ export default function Search({
           </div>
 
 
-          <div className="w-full sm:w-auto flex items-center h-10 sm:ml-auto justify-center sm:justify-end">
-            <span className="text-[18px] font-normal font-['Lato'] mr-2">Sort:</span>
-            <div className="relative">
+          <div className="w-full sm:w-auto flex items-center h-10 sm:ml-auto justify-center sm:justify-end gap-2">
+            <span className="text-[18px] font-normal font-['Lato']">Sort:</span>
+            <div className="relative inline-flex items-center">
               <select
                 aria-label="Sort"
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value)}
                 className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right outline-none cursor-pointer"
               >
-                <option>Popular new releases</option>
+                <option>New releases</option>
+                <option>Release date ascending</option>
+                <option>Release date descending</option>
+                <option>Title A-Z</option>
+                <option>Title Z-A</option>
                 <option>Price low to high</option>
                 <option>Price high to low</option>
               </select>

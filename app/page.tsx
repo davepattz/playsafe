@@ -18,7 +18,7 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["windows", "macos", "linux"]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Popular new releases");
+  const [selectedSort, setSelectedSort] = useState("New releases");
 
   return (
     <main className="min-h-screen bg-white">
