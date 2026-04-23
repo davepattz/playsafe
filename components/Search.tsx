@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from 'react';
-
 interface SearchProps {
   selectedPlatforms: string[];
   setSelectedPlatforms: React.Dispatch<React.SetStateAction<string[]>>;

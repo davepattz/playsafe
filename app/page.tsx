@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Header from "@/components/Header"
 import Title from "@/components/Title"
-import Filters, { playStyleOptions, gameTypeOptions, filterOptions } from "@/components/Filters"
+import Filters from "@/components/Filters"
 import Search from "@/components/Search"
 import Results from "@/components/Results"
 import Sidebar from "@/components/Sidebar"
 import Footer from "@/components/Footer"
+import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions"
 
 export default function Home() {
   // Lifting state up so Results can eventually use these for API calls
@@ -44,7 +45,14 @@ export default function Home() {
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <Results />
+            <Results
+              selectedGameTypes={selectedGameTypes}
+              selectedPlayStyles={selectedPlayStyles}
+              selectedFilters={selectedFilters}
+              selectedPlatforms={selectedPlatforms}
+              searchQuery={searchQuery}
+              selectedSort={selectedSort}
+            />
           </div>
 
           <Sidebar />
