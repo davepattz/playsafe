@@ -104,6 +104,10 @@ function normalizeTagLabel(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+function normalizeSearchText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
 function decodeSteamText(value: string) {
   return stripHtml(value.replace(/\\\//g, "/").replace(/\\"/g, '"'));
 }
@@ -213,6 +217,23 @@ function matchesPlayStyles(
   );
 }
 
+function matchesSearchQuery(title: string, searchQuery: string) {
+  if (!searchQuery) {
+    return true;
+  }
+
+  const normalizedTitle = normalizeSearchText(title);
+  const queryTerms = normalizeSearchText(searchQuery)
+    .split(" ")
+    .filter(Boolean);
+
+  if (queryTerms.length === 0) {
+    return true;
+  }
+
+  return queryTerms.every((term) => normalizedTitle.includes(term));
+}
+
 function parsePriceValue(price: string) {
   if (price.toLowerCase() === "free") {
     return 0;
@@ -237,7 +258,7 @@ function sortGames(games: SteamGame[], selectedSort: string) {
 
 async function fetchSearchBatch(start: number, searchQuery: string) {
   const params = new URLSearchParams({
-    query: searchQuery,
+    term: searchQuery,
     start: String(start),
     count: String(SEARCH_BATCH_SIZE),
     dynamic_data: "",
@@ -362,6 +383,10 @@ export async function GET(request: Request) {
         }
 
         seenAppIds.add(item.appId);
+
+        if (!matchesSearchQuery(item.title, searchQuery)) {
+          continue;
+        }
 
         if (!matchesPlatforms(item.platforms, selectedPlatforms)) {
           continue;
