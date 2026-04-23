@@ -35,6 +35,7 @@ export const TAG_MAP: Record<string, number> = {
   Racing: 699,
   RPG: 122,
   Sandbox: 3810,
+  "Sexual Content": 12095,
   Sports: 701,
   Nudity: 6650,
   Mature: 5611,

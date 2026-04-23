@@ -48,6 +48,7 @@ export const filterOptions = [
   "Psychological",
   "Psychological Horror",
   "Shooter",
+  "Sexual Content",
   "Third-Person Shooter",
   "Violent",
 ];
