@@ -32,6 +32,7 @@ export const gameTypeOptions = [
 ];
 
 export const filterOptions = [
+  "Bad Language",
   "Combat",
   "Dark Humor",
   "Dark Comedy",

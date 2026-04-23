@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 
@@ -189,6 +190,10 @@ function normalizeTagLabel(value: string) {
 
 function normalizeSearchText(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function decodeSteamText(value: string) {
@@ -449,6 +454,18 @@ function matchesHiddenLabels(hoverTags: string[], hiddenLabels: string[]) {
   );
 }
 
+function containsBadLanguage(value: string) {
+  if (!value) {
+    return false;
+  }
+
+  return badLanguageTerms.some((term) => {
+    const pattern = new RegExp(`\\b${escapeRegExp(term)}(?:s|ed|ing)?\\b`, "i");
+
+    return pattern.test(value);
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -521,6 +538,7 @@ export async function GET(request: Request) {
 
         const details = await fetchAppDetails(match.appId, countryCode);
         const hoverTags = await fetchHoverTags(match.appId);
+        const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
 
         if (details?.type && details.type !== "game") {
           continue;
@@ -531,6 +549,14 @@ export async function GET(request: Request) {
         }
 
         if (!matchesPlayStyles(details?.categories, filters.playStyles)) {
+          continue;
+        }
+
+        if (
+          hideBadLanguage &&
+          (containsBadLanguage(details?.name ?? match.title) ||
+            containsBadLanguage(details?.short_description ?? ""))
+        ) {
           continue;
         }
 
