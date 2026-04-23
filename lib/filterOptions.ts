@@ -17,6 +17,7 @@ export const gameTypeOptions = [
   "2D",
   "Action",
   "Casual",
+  "Cozy",
   "Cute",
   "Funny",
   "Open World",

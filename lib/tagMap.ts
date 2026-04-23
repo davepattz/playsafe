@@ -15,6 +15,7 @@ export const TAG_MAP: Record<string, number> = {
   Action: 19,
   Casual: 597,
   Combat: 3993,
+  Cozy: 97376,
   Cute: 4726,
   "Dark Comedy": 1649,
   "Dating Sim": 9551,
