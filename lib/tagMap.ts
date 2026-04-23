@@ -25,6 +25,7 @@ export const TAG_MAP: Record<string, number> = {
   Party: 7108,
   Physics: 3968,
   Platformer: 1625,
+  Psychological: 5186,
   Puzzle: 1664,
   Racing: 699,
   RPG: 122,

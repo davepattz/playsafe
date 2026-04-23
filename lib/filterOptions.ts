@@ -37,6 +37,7 @@ export const filterOptions = [
   "Hentai",
   "Nudity",
   "Mature",
+  "Psychological",
   "Violent",
   "Gore",
   "Difficult",
