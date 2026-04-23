@@ -5,6 +5,7 @@ import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
+const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
 const DEFAULT_LIMIT = 10;
 const SEARCH_BATCH_SIZE = 50;
 const MAX_BATCHES = 4;
@@ -39,6 +40,10 @@ interface SteamAppDetailsSuccess {
   data: {
     type?: string;
     short_description?: string;
+    categories?: Array<{
+      id: number;
+      description: string;
+    }>;
     platforms?: {
       windows?: boolean;
       mac?: boolean;
@@ -92,6 +97,10 @@ function stripHtml(value: string) {
     .replace(/&quot;/g, '"')
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function normalizeTagLabel(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function decodeSteamText(value: string) {
@@ -170,16 +179,37 @@ function matchesPlatforms(gamePlatforms: PlatformKey[], selectedPlatforms: Platf
   return selectedPlatforms.some((platform) => gamePlatforms.includes(platform));
 }
 
-function matchesIncludedTags(tagIds: number[], includeTags: number[]) {
-  if (includeTags.length === 0) {
+function matchesAnySelectedTag(tagIds: number[], selectedTags: number[]) {
+  if (selectedTags.length === 0) {
     return true;
   }
 
-  return includeTags.every((tagId) => tagIds.includes(tagId));
+  return selectedTags.some((tagId) => tagIds.includes(tagId));
 }
 
-function matchesExcludedTags(tagIds: number[], excludeTags: number[]) {
-  return !excludeTags.some((tagId) => tagIds.includes(tagId));
+function matchesExcludedTags(tagIds: number[], excludedTags: number[]) {
+  return !excludedTags.some((tagId) => tagIds.includes(tagId));
+}
+
+function matchesPlayStyles(
+  categories: Array<{ id: number; description: string }> | undefined,
+  selectedPlayStyles: string[],
+) {
+  if (selectedPlayStyles.length === 0) {
+    return true;
+  }
+
+  if (!categories || categories.length === 0) {
+    return false;
+  }
+
+  const normalizedCategories = new Set(
+    categories.map((category) => normalizeTagLabel(category.description)),
+  );
+
+  return selectedPlayStyles.some((playStyle) =>
+    normalizedCategories.has(normalizeTagLabel(playStyle)),
+  );
 }
 
 function matchesSearchQuery(title: string, searchQuery: string) {
@@ -267,6 +297,37 @@ async function fetchAppDetails(appId: number) {
   return details.data;
 }
 
+async function fetchHoverTags(appId: number) {
+  const params = new URLSearchParams({
+    l: "english",
+  });
+
+  const response = await fetch(`${STEAM_APP_HOVER_URL}/${appId}?${params.toString()}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const html = await response.text();
+  const tagPattern = /<div class="app_tag">([\s\S]*?)<\/div>/g;
+
+  return Array.from(html.matchAll(tagPattern), (match) => stripHtml(match[1]));
+}
+
+function matchesHiddenLabels(hoverTags: string[], hiddenLabels: string[]) {
+  if (hiddenLabels.length === 0) {
+    return false;
+  }
+
+  const normalizedHoverTags = new Set(hoverTags.map(normalizeTagLabel));
+
+  return hiddenLabels.some((label) =>
+    normalizedHoverTags.has(normalizeTagLabel(label)),
+  );
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -289,12 +350,12 @@ export async function GET(request: Request) {
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
     );
-    const { includeTags, excludeTags } = mapFiltersToTags(filters);
+    const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
 
     const matches: SteamSearchItem[] = [];
     const seenAppIds = new Set<number>();
 
-    for (let batchIndex = 0; batchIndex < MAX_BATCHES && matches.length < limit; batchIndex += 1) {
+    for (let batchIndex = 0; batchIndex < MAX_BATCHES; batchIndex += 1) {
       const start = batchIndex * SEARCH_BATCH_SIZE;
       const items = await fetchSearchBatch(start);
 
@@ -317,28 +378,38 @@ export async function GET(request: Request) {
           continue;
         }
 
-        if (!matchesIncludedTags(item.tagIds, includeTags)) {
+        if (!matchesAnySelectedTag(item.tagIds, gameTypeTags)) {
           continue;
         }
 
-        if (!matchesExcludedTags(item.tagIds, excludeTags)) {
+        if (!matchesExcludedTags(item.tagIds, hiddenTags)) {
           continue;
         }
 
         matches.push(item);
-
-        if (matches.length >= limit) {
-          break;
-        }
       }
     }
 
-    const detailedGames = await Promise.all(
-      matches.slice(0, limit).map(async (match) => {
+    const acceptedGames: SteamGame[] = [];
+
+    for (const match of matches) {
+      if (acceptedGames.length >= limit) {
+        break;
+      }
+
         const details = await fetchAppDetails(match.appId);
+        const hoverTags = await fetchHoverTags(match.appId);
 
         if (details?.type && details.type !== "game") {
-          return null;
+          continue;
+        }
+
+        if (matchesHiddenLabels(hoverTags, filters.hidden)) {
+          continue;
+        }
+
+        if (!matchesPlayStyles(details?.categories, filters.playStyles)) {
+          continue;
         }
 
         const detailPlatforms: PlatformKey[] = [];
@@ -355,7 +426,7 @@ export async function GET(request: Request) {
           detailPlatforms.push("linux");
         }
 
-        const game: SteamGame = {
+        acceptedGames.push({
           id: match.appId,
           name: details?.name ?? match.title,
           capsuleImage: details?.capsule_image ?? match.capsuleImage,
@@ -364,16 +435,10 @@ export async function GET(request: Request) {
           price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
           releaseDate: details?.release_date?.date ?? match.releaseDate,
           storeUrl: match.url.split("?")[0] ?? match.url,
-        };
+        });
+    }
 
-        return game;
-      }),
-    );
-
-    const games = sortGames(
-      detailedGames.filter((game): game is SteamGame => game !== null),
-      selectedSort,
-    );
+    const games = sortGames(acceptedGames, selectedSort);
 
     return NextResponse.json({
       filters,
@@ -381,8 +446,9 @@ export async function GET(request: Request) {
       sort: selectedSort,
       query: searchQuery,
       tags: {
-        include: includeTags,
-        exclude: excludeTags,
+        gameTypes: gameTypeTags,
+        playStyles: filters.playStyles,
+        hidden: hiddenTags,
       },
       total: games.length,
       games,

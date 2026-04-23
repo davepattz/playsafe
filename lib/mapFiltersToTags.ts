@@ -7,13 +7,15 @@ export interface FilterGroups {
 }
 
 export interface MappedTags {
-  includeTags: number[];
-  excludeTags: number[];
+  gameTypeTags: number[];
+  playStyleTags: number[];
+  hiddenTags: number[];
 }
 
 export function mapFiltersToTags(filters: FilterGroups): MappedTags {
-  const includeTags: number[] = [];
-  const excludeTags: number[] = [];
+  const gameTypeTags: number[] = [];
+  const playStyleTags: number[] = [];
+  const hiddenTags: number[] = [];
 
   const addTags = (items: string[], target: number[]) => {
     items.forEach((label) => {
@@ -25,9 +27,9 @@ export function mapFiltersToTags(filters: FilterGroups): MappedTags {
     });
   };
 
-  addTags(filters.gameTypes, includeTags);
-  addTags(filters.playStyles, includeTags);
-  addTags(filters.hidden, excludeTags);
+  addTags(filters.gameTypes, gameTypeTags);
+  addTags(filters.playStyles, playStyleTags);
+  addTags(filters.hidden, hiddenTags);
 
-  return { includeTags, excludeTags };
+  return { gameTypeTags, playStyleTags, hiddenTags };
 }
