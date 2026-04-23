@@ -46,10 +46,13 @@ export const filterOptions = [
   "Mature",
   "NSFW",
   "Nudity",
+  "Action Roguelike",
   "Psychological",
   "Psychological Horror",
+  "Roguelike",
   "Shooter",
   "Sexual Content",
   "Third-Person Shooter",
   "Violent",
+  "Wargame",
 ];

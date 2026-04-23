@@ -12,6 +12,7 @@ export const TAG_MAP: Record<string, number> = {
   "Shared/Split Screen Co-op": 39,
   "Shared/Split Screen": 24,
   "Cross-Platform Multiplayer": 27,
+  "Action Roguelike": 42804,
   Action: 19,
   Casual: 597,
   Combat: 3993,
@@ -33,6 +34,7 @@ export const TAG_MAP: Record<string, number> = {
   "Psychological Horror": 1721,
   Puzzle: 1664,
   Racing: 699,
+  Roguelike: 1716,
   RPG: 122,
   Sandbox: 3810,
   "Sexual Content": 12095,
@@ -45,4 +47,5 @@ export const TAG_MAP: Record<string, number> = {
   Shooter: 1775,
   "Third-Person Shooter": 3814,
   Horror: 1667,
+  Wargame: 4684,
 };
