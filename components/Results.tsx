@@ -7,7 +7,7 @@ type PlatformKey = "windows" | "macos" | "linux";
 interface GameResult {
   id: number;
   name: string;
-  capsuleImage: string;
+  imageUrl: string;
   shortDescription: string;
   platforms: PlatformKey[];
   price: string;
@@ -150,11 +150,11 @@ export default function Results({
               href={game.storeUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex flex-col md:flex-row border-b-2 border-black last:border-b-0 bg-white md:min-h-[185px] hover:bg-[#f8f8f8]"
+              className="flex flex-col md:flex-row border-b-2 border-black last:border-b-0 bg-white hover:bg-[#f8f8f8]"
             >
-              <div className="w-full md:w-[320px] h-[185px] flex-shrink-0 bg-gray-200 overflow-hidden">
+              <div className="w-full md:w-[320px] md:flex-shrink-0 bg-gray-200 overflow-hidden aspect-[460/215]">
                 <img
-                  src={game.capsuleImage}
+                  src={game.imageUrl}
                   alt={game.name}
                   className="w-full h-full object-cover"
                 />

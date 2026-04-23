@@ -27,7 +27,7 @@ interface SteamSearchItem {
 interface SteamGame {
   id: number;
   name: string;
-  capsuleImage: string;
+  imageUrl: string;
   shortDescription: string;
   platforms: PlatformKey[];
   price: string;
@@ -56,6 +56,7 @@ interface SteamAppDetailsSuccess {
       final_formatted?: string;
     };
     is_free?: boolean;
+    header_image?: string;
     capsule_image?: string;
     name?: string;
   };
@@ -429,7 +430,7 @@ export async function GET(request: Request) {
         acceptedGames.push({
           id: match.appId,
           name: details?.name ?? match.title,
-          capsuleImage: details?.capsule_image ?? match.capsuleImage,
+          imageUrl: details?.header_image ?? details?.capsule_image ?? match.capsuleImage,
           shortDescription: details?.short_description ?? "",
           platforms: detailPlatforms.length > 0 ? detailPlatforms : match.platforms,
           price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
