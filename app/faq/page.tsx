@@ -3,14 +3,14 @@ import Header from "@/components/Header";
 
 const faqs = [
   {
-    question: "What does PlaySafe do?",
+    question: "What does PlaySafe.games do?",
     answer:
-      "PlaySafe helps you search Steam for games that are more suitable for children and families by filtering out tags, themes, and wording you may want to avoid.",
+      "PlaySafe.games helps you search Steam for games that are more suitable for children and families by filtering out tags, themes, and wording you may want to avoid.",
   },
   {
     question: "Are these results officially rated for kids?",
     answer:
-      "No. PlaySafe is a filtering tool, not an official rating board. It is designed to reduce unwanted content, but parents and carers should still review each game before purchase.",
+      "No. PlaySafe.games is a filtering tool, not an official rating board. It is designed to reduce unwanted content, but parents and carers should still review each game before purchase.",
   },
   {
     question: "Why might some games still slip through?",
@@ -25,7 +25,7 @@ const faqs = [
   {
     question: "Why are prices different for different users?",
     answer:
-      "PlaySafe tries to detect the user’s storefront country and asks Steam for local pricing. If no reliable location data is available, it falls back to a default storefront.",
+      "PlaySafe.games tries to detect the user’s storefront country and asks Steam for local pricing. If no reliable location data is available, it falls back to a default storefront.",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="mt-4 font-['Lato'] text-[18px] text-black/75">
-            A few quick answers about how PlaySafe works and what to expect from the filters.
+            A few quick answers about how PlaySafe.games works and what to expect from the filters.
           </p>
         </div>
 
