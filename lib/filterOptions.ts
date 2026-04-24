@@ -50,6 +50,7 @@ export const filterOptions = [
   "Psychological",
   "Psychological Horror",
   "Roguelike",
+  "Romance",
   "Shooter",
   "Sexual Content",
   "Third-Person Shooter",
