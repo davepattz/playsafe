@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 type PlatformKey = "windows" | "macos" | "linux";
 
 interface GameResult {
@@ -45,6 +47,17 @@ export default function Results({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [queryVersion, setQueryVersion] = useState(0);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     setGames([]);
@@ -53,7 +66,7 @@ export default function Results({
     setError(null);
     setQueryVersion((value) => value + 1);
   }, [
-    searchQuery,
+    debouncedSearchQuery,
     selectedFilters,
     selectedGameTypes,
     selectedPlatforms,
@@ -90,7 +103,7 @@ export default function Results({
       }
     }
 
-    params.set("query", searchQuery);
+    params.set("query", debouncedSearchQuery);
     params.set("sort", selectedSort);
     params.set("limit", "30");
     params.set("page", String(page));
@@ -155,7 +168,7 @@ export default function Results({
   }, [
     page,
     queryVersion,
-    searchQuery,
+    debouncedSearchQuery,
     selectedFilters,
     selectedGameTypes,
     selectedPlatforms,

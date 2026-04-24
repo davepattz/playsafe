@@ -197,6 +197,21 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function normalizeStoreUrl(url: string, appId: number) {
+  try {
+    const parsedUrl = new URL(url);
+
+    parsedUrl.protocol = "https:";
+    parsedUrl.hostname = "store.steampowered.com";
+    parsedUrl.search = "";
+    parsedUrl.hash = "";
+
+    return parsedUrl.toString();
+  } catch {
+    return `https://store.steampowered.com/app/${appId}/`;
+  }
+}
+
 function decodeSteamText(value: string) {
   return stripHtml(value.replace(/\\\//g, "/").replace(/\\"/g, '"'));
 }
@@ -597,7 +612,7 @@ export async function GET(request: Request) {
           platforms: detailPlatforms.length > 0 ? detailPlatforms : match.platforms,
           price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
           releaseDate: details?.release_date?.date ?? match.releaseDate,
-          storeUrl: match.url.split("?")[0] ?? match.url,
+          storeUrl: normalizeStoreUrl(match.url, match.appId),
         });
     }
 

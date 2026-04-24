@@ -10,6 +10,8 @@ export const badLanguageTerms = [
   "bollocks",
   "bullshit",
   "cock",
+  "cult",
+  "c.u.l.t.",
   "cunt",
   "daddy",
   "damn",
