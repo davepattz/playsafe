@@ -8,16 +8,18 @@ import Search from "@/components/Search"
 import Results from "@/components/Results"
 import Sidebar from "@/components/Sidebar"
 import Footer from "@/components/Footer"
-import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions"
+import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
+
+const platformOptions = ["windows", "macos", "linux"];
 
 export default function Home() {
   // Lifting state up so Results can eventually use these for API calls
-  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>([]);
-  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>(playStyleOptions);
+  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(platformOptions);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Newest releases");
+  const [selectedSort, setSelectedSort] = useState("Popular");
 
   return (
     <main className="min-h-screen bg-white">

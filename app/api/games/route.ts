@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
+import { popularGameAppIds, popularGames } from "@/lib/popularGames";
 
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
@@ -100,6 +101,14 @@ function getSelectedPlatforms(searchParams: URLSearchParams): PlatformKey[] {
   }
 
   return selected;
+}
+
+function getPopularFallbackPlatforms(platforms: string[]) {
+  const fallbackPlatforms = platforms.filter((platform): platform is PlatformKey =>
+    ALL_PLATFORMS.includes(platform as PlatformKey),
+  );
+
+  return fallbackPlatforms.length > 0 ? fallbackPlatforms : [...ALL_PLATFORMS];
 }
 
 function getCountryFromAcceptLanguage(acceptLanguage: string | null) {
@@ -415,7 +424,7 @@ async function fetchSearchBatch(start: number, searchQuery: string, countryCode:
   return parseSearchResults(payload.results_html ?? "");
 }
 
-async function fetchAppDetails(appId: number, countryCode: string) {
+async function fetchAppDetails(appId: number, countryCode: string, bypassCache = false) {
   const params = new URLSearchParams({
     appids: String(appId),
     cc: countryCode,
@@ -423,14 +432,24 @@ async function fetchAppDetails(appId: number, countryCode: string) {
   });
 
   const response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
-    next: { revalidate: 3600 },
+    headers: {
+      Accept: "application/json",
+    },
+    ...(bypassCache ? { cache: "no-store" as const } : { next: { revalidate: 3600 } }),
   });
 
   if (!response.ok) {
     return null;
   }
 
-  const payload = (await response.json()) as SteamAppDetailsResponse;
+  let payload: SteamAppDetailsResponse;
+
+  try {
+    payload = (await response.json()) as SteamAppDetailsResponse;
+  } catch {
+    return null;
+  }
+
   const details = payload[String(appId)];
 
   if (!details || !details.success) {
@@ -438,6 +457,45 @@ async function fetchAppDetails(appId: number, countryCode: string) {
   }
 
   return details.data;
+}
+
+async function fetchAppDetailsBatch(appIds: number[], countryCode: string) {
+  const params = new URLSearchParams({
+    appids: appIds.join(","),
+    cc: countryCode,
+    l: "english",
+  });
+
+  const response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
+    headers: {
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return new Map<number, SteamAppDetailsSuccess["data"]>();
+  }
+
+  let payload: SteamAppDetailsResponse;
+
+  try {
+    payload = (await response.json()) as SteamAppDetailsResponse;
+  } catch {
+    return new Map<number, SteamAppDetailsSuccess["data"]>();
+  }
+
+  const detailsByAppId = new Map<number, SteamAppDetailsSuccess["data"]>();
+
+  appIds.forEach((appId) => {
+    const details = payload[String(appId)];
+
+    if (details?.success) {
+      detailsByAppId.set(appId, details.data);
+    }
+  });
+
+  return detailsByAppId;
 }
 
 async function fetchHoverTags(appId: number) {
@@ -471,6 +529,25 @@ function matchesHiddenLabels(hoverTags: string[], hiddenLabels: string[]) {
   );
 }
 
+function matchesSelectedLabels(hoverTags: string[], selectedLabels: string[]) {
+  if (selectedLabels.length === 0) {
+    return true;
+  }
+
+  const normalizedHoverTags = new Set(hoverTags.map(normalizeTagLabel));
+
+  return selectedLabels.some((label) => {
+    const normalizedLabel = normalizeTagLabel(label);
+
+    return Array.from(normalizedHoverTags).some(
+      (hoverTag) =>
+        hoverTag === normalizedLabel ||
+        hoverTag.includes(normalizedLabel) ||
+        normalizedLabel.includes(hoverTag),
+    );
+  });
+}
+
 function containsBadLanguage(value: string) {
   if (!value) {
     return false;
@@ -502,6 +579,103 @@ function needsHoverTagCheck(hiddenLabels: string[]) {
   return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
 }
 
+function hasPriceAndReleaseDate(details: SteamAppDetailsSuccess["data"] | undefined) {
+  return Boolean(
+    details &&
+      (details.is_free || details.price_overview?.final_formatted) &&
+      details.release_date?.date,
+  );
+}
+
+async function fetchPopularGames(
+  countryCode: string,
+  selectedPlatforms: PlatformKey[],
+  filters: FilterGroups,
+) {
+  const acceptedGames: SteamGame[] = [];
+  const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
+  const shouldFetchHoverTags =
+    filters.gameTypes.length > 0 || filters.hidden.length > 0;
+  const detailsByAppId = await fetchAppDetailsBatch(popularGameAppIds, countryCode);
+
+  for (const popularGame of popularGames) {
+    const appId = popularGame.appId;
+    let details = detailsByAppId.get(appId);
+
+    if (!hasPriceAndReleaseDate(details)) {
+      details = (await fetchAppDetails(appId, countryCode, true)) ?? details;
+    }
+
+    if (details?.type && details.type !== "game") {
+      continue;
+    }
+
+    const detailPlatforms: PlatformKey[] = [];
+
+    if (details?.platforms?.windows) {
+      detailPlatforms.push("windows");
+    }
+
+    if (details?.platforms?.mac) {
+      detailPlatforms.push("macos");
+    }
+
+    if (details?.platforms?.linux) {
+      detailPlatforms.push("linux");
+    }
+
+    const platforms =
+      detailPlatforms.length > 0
+        ? detailPlatforms
+        : getPopularFallbackPlatforms(popularGame.platforms);
+
+    if (!matchesPlatforms(platforms, selectedPlatforms)) {
+      continue;
+    }
+
+    const hoverTags = shouldFetchHoverTags ? await fetchHoverTags(appId) : [];
+
+    if (!matchesSelectedLabels(hoverTags, filters.gameTypes)) {
+      continue;
+    }
+
+    if (matchesHiddenLabels(hoverTags, filters.hidden)) {
+      continue;
+    }
+
+    if (details && !matchesPlayStyles(details.categories, filters.playStyles)) {
+      continue;
+    }
+
+    if (
+      hideBadLanguage &&
+      (containsBadLanguage(details?.name ?? popularGame.name) ||
+        containsBadLanguage(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
+    acceptedGames.push({
+      id: appId,
+      name: details?.name ?? popularGame.name,
+      imageUrl:
+        details?.header_image ??
+        details?.capsule_image ??
+        `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+      shortDescription: details?.short_description ?? "",
+      platforms,
+      price:
+        details?.is_free
+          ? "Free"
+          : details?.price_overview?.final_formatted ?? popularGame.priceLabel,
+      releaseDate: details?.release_date?.date ?? popularGame.releaseDate,
+      storeUrl: `https://store.steampowered.com/app/${appId}/`,
+    });
+  }
+
+  return acceptedGames;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -519,7 +693,7 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "Newest releases";
+    const selectedSort = searchParams.get("sort") ?? "Popular";
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
@@ -533,6 +707,7 @@ export async function GET(request: Request) {
     const endIndex = startIndex + limit;
     const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
+    const isPopularRequest = selectedSort === "Popular" && searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
       filters.playStyles.length > 0 ||
@@ -545,49 +720,53 @@ export async function GET(request: Request) {
         ? FILTERED_MAX_BATCHES
         : DEFAULT_MAX_BATCHES;
 
-    const matches: SteamSearchItem[] = [];
-    const seenAppIds = new Set<number>();
+    const acceptedGames: SteamGame[] = isPopularRequest
+      ? await fetchPopularGames(countryCode, selectedPlatforms, filters)
+      : [];
 
-    for (let batchIndex = 0; batchIndex < maxBatches; batchIndex += 1) {
-      const start = batchIndex * SEARCH_BATCH_SIZE;
-      const items = await fetchSearchBatch(start, searchQuery, countryCode);
+    if (!isPopularRequest) {
+      const matches: SteamSearchItem[] = [];
+      const seenAppIds = new Set<number>();
 
-      if (items.length === 0) {
-        break;
+      for (let batchIndex = 0; batchIndex < maxBatches; batchIndex += 1) {
+        const start = batchIndex * SEARCH_BATCH_SIZE;
+        const items = await fetchSearchBatch(start, searchQuery, countryCode);
+
+        if (items.length === 0) {
+          break;
+        }
+
+        for (const item of items) {
+          if (seenAppIds.has(item.appId)) {
+            continue;
+          }
+
+          seenAppIds.add(item.appId);
+
+          if (!matchesSearchQuery(item.title, searchQuery)) {
+            continue;
+          }
+
+          if (!matchesPlatforms(item.platforms, selectedPlatforms)) {
+            continue;
+          }
+
+          if (!matchesAnySelectedTag(item.tagIds, gameTypeTags)) {
+            continue;
+          }
+
+          if (!matchesExcludedTags(item.tagIds, hiddenTags)) {
+            continue;
+          }
+
+          matches.push(item);
+        }
       }
 
-      for (const item of items) {
-        if (seenAppIds.has(item.appId)) {
-          continue;
-        }
+      const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
+      const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
-        seenAppIds.add(item.appId);
-
-        if (!matchesSearchQuery(item.title, searchQuery)) {
-          continue;
-        }
-
-        if (!matchesPlatforms(item.platforms, selectedPlatforms)) {
-          continue;
-        }
-
-        if (!matchesAnySelectedTag(item.tagIds, gameTypeTags)) {
-          continue;
-        }
-
-        if (!matchesExcludedTags(item.tagIds, hiddenTags)) {
-          continue;
-        }
-
-        matches.push(item);
-      }
-    }
-
-    const acceptedGames: SteamGame[] = [];
-    const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
-    const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
-
-    for (const match of matches) {
+      for (const match of matches) {
         if (acceptedGames.length >= targetAcceptedCount) {
           break;
         }
@@ -639,6 +818,7 @@ export async function GET(request: Request) {
           releaseDate: details?.release_date?.date ?? match.releaseDate,
           storeUrl: normalizeStoreUrl(match.url, match.appId),
         });
+      }
     }
 
     const sortedGames = sortGames(acceptedGames, selectedSort);

@@ -35,6 +35,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   Puzzle: 1664,
   Racing: 699,
   Roguelike: 1716,
+  Romance: 4947,
   RPG: 122,
   Sandbox: 3810,
   "Sexual Content": 12095,
