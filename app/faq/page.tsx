@@ -13,6 +13,11 @@ const faqs = [
       "No. PlaySafe.games is a filtering tool, not an official rating board. It is designed to reduce unwanted content, but parents and carers should still review each game before purchase.",
   },
   {
+    question: "Is PlaySafe.games affiliated with Steam or Valve?",
+    answer:
+      "No. PlaySafe.games is an independent project and is not affiliated with, endorsed by, or operated by Steam or Valve.",
+  },
+  {
     question: "Why might some games still slip through?",
     answer:
       "Steam data can be inconsistent between tags, categories, titles, and descriptions. We do extra filtering, but some games may still appear if Steam’s own metadata is incomplete or delayed.",
