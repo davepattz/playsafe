@@ -40,7 +40,7 @@ export default function Header() {
           {/* Right heart icon */}
           <div className="order-3 md:order-none mt-4 md:mt-0 flex items-center">
   <a
-    href="https://your-donate-link.com"
+    href="https://buymeacoffee.com/playsafegames"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Donate to PlaySafe"
