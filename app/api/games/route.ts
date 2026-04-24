@@ -477,9 +477,24 @@ function containsBadLanguage(value: string) {
   }
 
   return badLanguageTerms.some((term) => {
-    const pattern = new RegExp(`\\b${escapeRegExp(term)}(?:s|ed|ing)?\\b`, "i");
+    const normalizedTerm = normalizeTagLabel(term);
 
-    return pattern.test(value);
+    if (!normalizedTerm) {
+      return false;
+    }
+
+    const dottedLetterPattern = term.includes(".")
+      ? new RegExp(
+          `(?:^|[^a-z0-9])${normalizedTerm
+            .split("")
+            .map((character) => `${escapeRegExp(character)}[^a-z0-9]*`)
+            .join("")}(?:$|[^a-z0-9])`,
+          "i",
+        )
+      : null;
+    const pattern = new RegExp(`\\b${escapeRegExp(normalizedTerm)}(?:s|ed|ing)?\\b`, "i");
+
+    return pattern.test(value) || Boolean(dottedLetterPattern?.test(value));
   });
 }
 
