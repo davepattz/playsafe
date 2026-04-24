@@ -12,10 +12,9 @@ import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOp
 
 export default function Home() {
   // Lifting state up so Results can eventually use these for API calls
-  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>(playStyleOptions);
-  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
-  // Defaulting to "Hide All" problematic content for maximum safety
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
+  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>([]);
+  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSort, setSelectedSort] = useState("Newest releases");
