@@ -12,6 +12,7 @@ const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
 const DEFAULT_MAX_BATCHES = 4;
 const FILTERED_MAX_BATCHES = 12;
+const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
@@ -375,7 +376,7 @@ function sortGames(games: SteamGame[], selectedSort: string) {
     return [...games].sort((a, b) => parseReleaseDateValue(a.releaseDate) - parseReleaseDateValue(b.releaseDate));
   }
 
-  if (selectedSort === "Release date descending" || selectedSort === "New releases") {
+  if (selectedSort === "Release date descending" || selectedSort === "Newest releases") {
     return [...games].sort((a, b) => parseReleaseDateValue(b.releaseDate) - parseReleaseDateValue(a.releaseDate));
   }
 
@@ -482,6 +483,10 @@ function containsBadLanguage(value: string) {
   });
 }
 
+function needsHoverTagCheck(hiddenLabels: string[]) {
+  return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -499,7 +504,7 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "New releases";
+    const selectedSort = searchParams.get("sort") ?? "Newest releases";
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
@@ -519,7 +524,11 @@ export async function GET(request: Request) {
       filters.hidden.length > 0 ||
       selectedPlatforms.length > 0 ||
       searchQuery.length > 0;
-    const maxBatches = hasActiveFilters ? FILTERED_MAX_BATCHES : DEFAULT_MAX_BATCHES;
+    const maxBatches = searchQuery.length > 0
+      ? SEARCH_QUERY_MAX_BATCHES
+      : hasActiveFilters
+        ? FILTERED_MAX_BATCHES
+        : DEFAULT_MAX_BATCHES;
 
     const matches: SteamSearchItem[] = [];
     const seenAppIds = new Set<number>();
@@ -561,6 +570,7 @@ export async function GET(request: Request) {
 
     const acceptedGames: SteamGame[] = [];
     const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
+    const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
     for (const match of matches) {
         if (acceptedGames.length >= targetAcceptedCount) {
@@ -568,13 +578,13 @@ export async function GET(request: Request) {
         }
 
         const details = await fetchAppDetails(match.appId, countryCode);
-        const hoverTags = await fetchHoverTags(match.appId);
+        const hoverTags = shouldFetchHoverTags ? await fetchHoverTags(match.appId) : [];
 
         if (details?.type && details.type !== "game") {
           continue;
         }
 
-        if (matchesHiddenLabels(hoverTags, filters.hidden)) {
+        if (shouldFetchHoverTags && matchesHiddenLabels(hoverTags, filters.hidden)) {
           continue;
         }
 
