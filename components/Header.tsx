@@ -6,11 +6,13 @@ export default function Header() {
 
           {/* Logo */}
           <div className="order-1 md:order-none md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-            <img
-              src="/logo.svg"
-              alt="PlaySafe"
-              className="h-[28px] w-auto"
-            />
+            <a href="/" aria-label="PlaySafe home">
+              <img
+                src="/logo.svg"
+                alt="PlaySafe"
+                className="h-[28px] w-auto"
+              />
+            </a>
           </div>
 
           {/* Left nav */}
