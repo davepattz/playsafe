@@ -4,11 +4,11 @@
 // Platforms can be "windows", "macos", and/or "linux".
 export const popularGames = [
   {
-    appId: 413150,
-    name: "Stardew Valley",
-    releaseDate: "Feb 26, 2016",
+    appId: 2968420,
+    name: "PowerWash Simulator 2",
+    releaseDate: "Oct 23, 2025",
     priceLabel: "See Steam",
-    platforms: ["windows", "macos", "linux"],
+    platforms: ["windows"],
   },
   {
     appId: 433340,
@@ -18,11 +18,11 @@ export const popularGames = [
     platforms: ["windows", "macos", "linux"],
   },
   {
-    appId: 1455840,
-    name: "Dorfromantik",
-    releaseDate: "Apr 28, 2022",
+    appId: 1211020,
+    name: "Wobbly Life",
+    releaseDate: "Sep 18, 2025",
     priceLabel: "See Steam",
-    platforms: ["windows", "macos", "linux"],
+    platforms: ["windows"],
   },
   {
     appId: 1135690,
@@ -46,11 +46,11 @@ export const popularGames = [
     platforms: ["windows", "macos"],
   },
   {
-    appId: 1055540,
-    name: "A Short Hike",
-    releaseDate: "Jul 30, 2019",
+    appId: 2486820,
+    name: "Sonic Racing: CrossWorlds",
+    releaseDate: "Sep 25, 2025",
     priceLabel: "See Steam",
-    platforms: ["windows", "macos", "linux"],
+    platforms: ["windows"],
   },
   {
     appId: 1337010,
@@ -60,11 +60,11 @@ export const popularGames = [
     platforms: ["windows", "macos"],
   },
   {
-    appId: 1127500,
-    name: "Mini Motorways",
-    releaseDate: "Jul 20, 2021",
+    appId: 2993780,
+    name: "FANTASY LIFE i: The Girl Who Steals Time",
+    releaseDate: "May 21, 2025",
     priceLabel: "See Steam",
-    platforms: ["windows", "macos"],
+    platforms: ["windows"],
   },
   {
     appId: 1291340,
