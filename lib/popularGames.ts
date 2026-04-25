@@ -108,6 +108,13 @@ export const popularGames = [
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
+  {
+    appId: 284160,
+    name: "BeamNG.drive",
+    releaseDate: "May 29, 2015",
+    priceLabel: "See Steam",
+    platforms: ["windows", "linux"],
+  },
 ];
 
 export const popularGameAppIds = popularGames.map((game) => game.appId);
