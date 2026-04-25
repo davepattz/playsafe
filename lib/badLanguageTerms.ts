@@ -18,6 +18,8 @@ export const badLanguageTerms = [
   "dick",
   "douche",
   "douchebag",
+  "drug",
+  "drugs",
   "fuck",
   "fucker",
   "fucking",
