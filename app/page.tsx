@@ -10,14 +10,12 @@ import Sidebar from "@/components/Sidebar"
 import Footer from "@/components/Footer"
 import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 
-const platformOptions = ["windows", "macos", "linux"];
-
 export default function Home() {
   // Lifting state up so Results can eventually use these for API calls
   const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>(playStyleOptions);
   const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
   const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(platformOptions);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSort, setSelectedSort] = useState("Popular");
 
