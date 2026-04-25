@@ -28,6 +28,7 @@ interface ResultsProps {
   selectedPlayStyles: string[];
   selectedFilters: string[];
   selectedPlatforms: string[];
+  applyPopularFilters: boolean;
   searchQuery: string;
   selectedSort: string;
 }
@@ -37,6 +38,7 @@ export default function Results({
   selectedPlayStyles,
   selectedFilters,
   selectedPlatforms,
+  applyPopularFilters,
   searchQuery,
   selectedSort,
 }: ResultsProps) {
@@ -94,6 +96,10 @@ export default function Results({
     selectedPlatforms.forEach((platform) => {
       params.append("platforms", platform);
     });
+
+    if (applyPopularFilters) {
+      params.set("applyPopularFilters", "true");
+    }
 
     if (typeof Intl !== "undefined") {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -173,6 +179,7 @@ export default function Results({
     selectedGameTypes,
     selectedPlatforms,
     selectedPlayStyles,
+    applyPopularFilters,
     selectedSort,
   ]);
 

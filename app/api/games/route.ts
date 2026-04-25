@@ -590,8 +590,13 @@ function hasPriceAndReleaseDate(details: SteamAppDetailsSuccess["data"] | undefi
 async function fetchPopularGames(
   countryCode: string,
   selectedPlatforms: PlatformKey[],
+  filters: FilterGroups,
+  applyFilters: boolean,
 ) {
   const acceptedGames: SteamGame[] = [];
+  const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
+  const shouldFetchHoverTags =
+    applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
   const detailsByAppId = await fetchAppDetailsBatch(popularGameAppIds, countryCode);
 
   for (const popularGame of popularGames) {
@@ -626,6 +631,28 @@ async function fetchPopularGames(
         : getPopularFallbackPlatforms(popularGame.platforms);
 
     if (!matchesPlatforms(platforms, selectedPlatforms)) {
+      continue;
+    }
+
+    const hoverTags = shouldFetchHoverTags ? await fetchHoverTags(appId) : [];
+
+    if (applyFilters && !matchesSelectedLabels(hoverTags, filters.gameTypes)) {
+      continue;
+    }
+
+    if (applyFilters && matchesHiddenLabels(hoverTags, filters.hidden)) {
+      continue;
+    }
+
+    if (applyFilters && details && !matchesPlayStyles(details.categories, filters.playStyles)) {
+      continue;
+    }
+
+    if (
+      hideBadLanguage &&
+      (containsBadLanguage(details?.name ?? popularGame.name) ||
+        containsBadLanguage(details?.short_description ?? ""))
+    ) {
       continue;
     }
 
@@ -669,6 +696,7 @@ export async function GET(request: Request) {
     const selectedPlatforms = getSelectedPlatforms(searchParams);
     const selectedSort = searchParams.get("sort") ?? "Popular";
     const searchQuery = (searchParams.get("query") ?? "").trim();
+    const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
@@ -695,7 +723,7 @@ export async function GET(request: Request) {
         : DEFAULT_MAX_BATCHES;
 
     const acceptedGames: SteamGame[] = isPopularRequest
-      ? await fetchPopularGames(countryCode, selectedPlatforms)
+      ? await fetchPopularGames(countryCode, selectedPlatforms, filters, applyPopularFilters)
       : [];
 
     if (!isPopularRequest) {
