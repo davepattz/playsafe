@@ -4,9 +4,9 @@
 // Platforms can be "windows", "macos", and/or "linux".
 export const popularGames = [
   {
-    appId: 2968420,
-    name: "PowerWash Simulator 2",
-    releaseDate: "Oct 23, 2025",
+    appId: 1211020,
+    name: "Wobbly Life",
+    releaseDate: "Sep 18, 2025",
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
@@ -18,9 +18,9 @@ export const popularGames = [
     platforms: ["windows", "macos", "linux"],
   },
   {
-    appId: 1211020,
-    name: "Wobbly Life",
-    releaseDate: "Sep 18, 2025",
+    appId: 2968420,
+    name: "PowerWash Simulator 2",
+    releaseDate: "Oct 23, 2025",
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
@@ -70,6 +70,13 @@ export const popularGames = [
     appId: 2495100,
     name: "Hello Kitty Island Adventure",
     releaseDate: "Jan 30, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1401590,
+    name: "Disney Dreamlight Valley",
+    releaseDate: "Dec 5, 2023",
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
