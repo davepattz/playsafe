@@ -80,6 +80,13 @@ export const popularGames = [
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
+  {
+    appId: 1062520,
+    name: "Dinkum",
+    releaseDate: "Apr 22, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
 ];
 
 export const popularGameAppIds = popularGames.map((game) => game.appId);
