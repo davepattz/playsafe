@@ -67,11 +67,11 @@ export const popularGames = [
     platforms: ["windows"],
   },
   {
-    appId: 1291340,
-    name: "Townscaper",
-    releaseDate: "Aug 26, 2021",
+    appId: 2495100,
+    name: "Hello Kitty Island Adventure",
+    releaseDate: "Jan 30, 2025",
     priceLabel: "See Steam",
-    platforms: ["windows", "macos"],
+    platforms: ["windows"],
   },
 ];
 
