@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGameAppIds, popularGames } from "@/lib/popularGames";
+import { popularGames } from "@/lib/popularGames";
+import {
+  createSteamResultsCacheKey,
+  readSteamResultsCache,
+  type SteamResultsCacheStatus,
+  writeSteamResultsCache,
+} from "@/lib/steamResultsCache";
 
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
@@ -15,8 +21,10 @@ const DEFAULT_MAX_BATCHES = 4;
 const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
+const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
+type PopularGameSource = (typeof popularGames)[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -47,6 +55,27 @@ interface SteamGame {
   price: string;
   releaseDate: string;
   storeUrl: string;
+}
+
+interface GamesResponse {
+  filters: FilterGroups;
+  page: number;
+  hasMore: boolean;
+  platforms: PlatformKey[];
+  sort: string;
+  countryCode: string;
+  query: string;
+  tags: {
+    gameTypes: number[];
+    playStyles: string[];
+    hidden: number[];
+  };
+  total: number;
+  games: SteamGame[];
+}
+
+interface PopularGamesSourcePayload {
+  games?: PopularGameSource[];
 }
 
 interface SteamAppDetailsSuccess {
@@ -81,6 +110,12 @@ interface SteamAppDetailsFailure {
 }
 
 type SteamAppDetailsResponse = Record<string, SteamAppDetailsSuccess | SteamAppDetailsFailure>;
+
+function logSteamResultsCacheStatus(status: SteamResultsCacheStatus) {
+  if (process.env.NODE_ENV === "development") {
+    console.info(`Steam results cache: ${status}`);
+  }
+}
 
 function getMultiValue(searchParams: URLSearchParams, key: string) {
   return searchParams
@@ -587,19 +622,61 @@ function hasPriceAndReleaseDate(details: SteamAppDetailsSuccess["data"] | undefi
   );
 }
 
+function isPopularGameSource(value: unknown): value is PopularGameSource {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const game = value as Partial<PopularGameSource>;
+
+  return (
+    typeof game.appId === "number" &&
+    typeof game.name === "string" &&
+    typeof game.releaseDate === "string" &&
+    typeof game.priceLabel === "string" &&
+    Array.isArray(game.platforms) &&
+    game.platforms.every((platform) => typeof platform === "string")
+  );
+}
+
+async function getPopularGamesSource() {
+  const cachedSource = await readSteamResultsCache<PopularGamesSourcePayload>(
+    POPULAR_GAMES_SOURCE_CACHE_KEY,
+  );
+  const sourceGames = cachedSource.payload?.games?.filter(isPopularGameSource) ?? [];
+
+  if (sourceGames.length > 0) {
+    if (process.env.NODE_ENV === "development") {
+      console.info(`Popular games source: supabase (${sourceGames.length})`);
+    }
+
+    return sourceGames;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.info(`Popular games source: local fallback (${popularGames.length})`);
+  }
+
+  return popularGames;
+}
+
 async function fetchPopularGames(
   countryCode: string,
   selectedPlatforms: PlatformKey[],
   filters: FilterGroups,
   applyFilters: boolean,
+  popularGamesSource: PopularGameSource[],
 ) {
   const acceptedGames: SteamGame[] = [];
   const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
   const shouldFetchHoverTags =
     applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
-  const detailsByAppId = await fetchAppDetailsBatch(popularGameAppIds, countryCode);
+  const detailsByAppId = await fetchAppDetailsBatch(
+    popularGamesSource.map((game) => game.appId),
+    countryCode,
+  );
 
-  for (const popularGame of popularGames) {
+  for (const popularGame of popularGamesSource) {
     const appId = popularGame.appId;
     let details = detailsByAppId.get(appId);
 
@@ -697,6 +774,7 @@ export async function GET(request: Request) {
     const selectedSort = searchParams.get("sort") ?? "Popular";
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";
+    const refreshCache = searchParams.get("refreshCache") === "true";
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
@@ -721,9 +799,43 @@ export async function GET(request: Request) {
       : hasActiveFilters
         ? FILTERED_MAX_BATCHES
         : DEFAULT_MAX_BATCHES;
+    const popularGamesSource = isPopularRequest ? await getPopularGamesSource() : [];
+    const cacheKey = createSteamResultsCacheKey({
+      applyPopularFilters,
+      countryCode,
+      filters,
+      limit,
+      page,
+      platforms: selectedPlatforms,
+      popularGamesSource: isPopularRequest ? popularGamesSource : undefined,
+      query: searchQuery,
+      sort: selectedSort,
+    });
+
+    if (!refreshCache) {
+      const cachedResult = await readSteamResultsCache<GamesResponse>(cacheKey);
+
+      logSteamResultsCacheStatus(cachedResult.status);
+
+      if (cachedResult.payload) {
+        return NextResponse.json(cachedResult.payload, {
+          headers: {
+            "x-playsafe-cache": "hit",
+          },
+        });
+      }
+    } else {
+      logSteamResultsCacheStatus("miss");
+    }
 
     const acceptedGames: SteamGame[] = isPopularRequest
-      ? await fetchPopularGames(countryCode, selectedPlatforms, filters, applyPopularFilters)
+      ? await fetchPopularGames(
+          countryCode,
+          selectedPlatforms,
+          filters,
+          applyPopularFilters,
+          popularGamesSource,
+        )
       : [];
 
     if (!isPopularRequest) {
@@ -826,8 +938,7 @@ export async function GET(request: Request) {
     const sortedGames = sortGames(acceptedGames, selectedSort);
     const games = sortedGames.slice(startIndex, endIndex);
     const hasMore = sortedGames.length > endIndex;
-
-    return NextResponse.json({
+    const payload: GamesResponse = {
       filters,
       page,
       hasMore,
@@ -842,6 +953,14 @@ export async function GET(request: Request) {
       },
       total: sortedGames.length,
       games,
+    };
+
+    await writeSteamResultsCache(cacheKey, payload);
+
+    return NextResponse.json(payload, {
+      headers: {
+        "x-playsafe-cache": "miss",
+      },
     });
   } catch (error) {
     console.error("Failed to fetch Steam games", error);
