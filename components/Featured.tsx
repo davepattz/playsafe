@@ -1,6 +1,6 @@
 "use client";
 
-export type FeaturedOption = "popular" | "new-releases" | "all";
+export type FeaturedOption = "popular" | "new-releases";
 
 interface FeaturedProps {
   selectedFeatured: FeaturedOption;
@@ -13,7 +13,6 @@ const featuredOptions: Array<{
 }> = [
   { label: "Popular", value: "popular" },
   { label: "New releases", value: "new-releases" },
-  { label: "All games", value: "all" },
 ];
 
 export default function Featured({
