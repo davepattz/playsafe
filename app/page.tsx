@@ -10,16 +10,27 @@ import Sidebar from "@/components/Sidebar"
 import Footer from "@/components/Footer"
 import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 
-const platformOptions = ["windows", "macos", "linux"];
-
 export default function Home() {
   // Lifting state up so Results can eventually use these for API calls
   const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>(playStyleOptions);
   const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
   const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(platformOptions);
+  const [applyPopularFilters, setApplyPopularFilters] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSort, setSelectedSort] = useState("Popular");
+  const updateSelectedPlayStyles: typeof setSelectedPlayStyles = (value) => {
+    setApplyPopularFilters(true);
+    setSelectedPlayStyles(value);
+  };
+  const updateSelectedGameTypes: typeof setSelectedGameTypes = (value) => {
+    setApplyPopularFilters(true);
+    setSelectedGameTypes(value);
+  };
+  const updateSelectedFilters: typeof setSelectedFilters = (value) => {
+    setApplyPopularFilters(true);
+    setSelectedFilters(value);
+  };
 
   return (
     <main className="min-h-screen bg-white">
@@ -29,11 +40,11 @@ export default function Home() {
         <Title />
         <Filters 
           selectedPlayStyles={selectedPlayStyles}
-          setSelectedPlayStyles={setSelectedPlayStyles}
+          setSelectedPlayStyles={updateSelectedPlayStyles}
           selectedGameTypes={selectedGameTypes}
-          setSelectedGameTypes={setSelectedGameTypes}
+          setSelectedGameTypes={updateSelectedGameTypes}
           selectedFilters={selectedFilters}
-          setSelectedFilters={setSelectedFilters}
+          setSelectedFilters={updateSelectedFilters}
         />
         <Search 
           selectedPlatforms={selectedPlatforms}
@@ -51,6 +62,7 @@ export default function Home() {
               selectedPlayStyles={selectedPlayStyles}
               selectedFilters={selectedFilters}
               selectedPlatforms={selectedPlatforms}
+              applyPopularFilters={applyPopularFilters}
               searchQuery={searchQuery}
               selectedSort={selectedSort}
             />
