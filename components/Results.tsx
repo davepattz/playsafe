@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { type FeaturedOption } from "@/components/Featured";
+
 const SEARCH_DEBOUNCE_MS = 400;
 
 type PlatformKey = "windows" | "macos" | "linux";
@@ -31,6 +33,7 @@ interface ResultsProps {
   applyPopularFilters: boolean;
   searchQuery: string;
   selectedSort: string;
+  selectedFeatured: FeaturedOption;
 }
 
 export default function Results({
@@ -41,6 +44,7 @@ export default function Results({
   applyPopularFilters,
   searchQuery,
   selectedSort,
+  selectedFeatured,
 }: ResultsProps) {
   const [games, setGames] = useState<GameResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,6 +78,7 @@ export default function Results({
     selectedPlatforms,
     selectedPlayStyles,
     selectedSort,
+    selectedFeatured,
   ]);
 
   useEffect(() => {
@@ -111,6 +116,7 @@ export default function Results({
 
     params.set("query", debouncedSearchQuery);
     params.set("sort", selectedSort);
+    params.set("featured", selectedFeatured);
     params.set("limit", "30");
     params.set("page", String(page));
 
@@ -181,6 +187,7 @@ export default function Results({
     selectedPlayStyles,
     applyPopularFilters,
     selectedSort,
+    selectedFeatured,
   ]);
 
   const renderPlatformIcon = (platform: PlatformKey) => {

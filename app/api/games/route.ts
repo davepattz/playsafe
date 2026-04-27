@@ -24,6 +24,7 @@ const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
+type FeaturedKey = "popular" | "new-releases" | "all";
 type PopularGameSource = (typeof popularGames)[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
@@ -63,6 +64,7 @@ interface GamesResponse {
   hasMore: boolean;
   platforms: PlatformKey[];
   sort: string;
+  featured: FeaturedKey;
   countryCode: string;
   query: string;
   tags: {
@@ -136,6 +138,16 @@ function getSelectedPlatforms(searchParams: URLSearchParams): PlatformKey[] {
   }
 
   return selected;
+}
+
+function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
+  const featured = searchParams.get("featured");
+
+  if (featured === "all" || featured === "new-releases") {
+    return featured;
+  }
+
+  return "popular";
 }
 
 function getPopularFallbackPlatforms(platforms: string[]) {
@@ -771,7 +783,8 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "Popular";
+    const selectedSort = searchParams.get("sort") ?? "Release date descending";
+    const selectedFeatured = getSelectedFeatured(searchParams);
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";
     const refreshCache = searchParams.get("refreshCache") === "true";
@@ -787,7 +800,7 @@ export async function GET(request: Request) {
     const endIndex = startIndex + limit;
     const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
-    const isPopularRequest = selectedSort === "Popular" && searchQuery.length === 0;
+    const isPopularRequest = selectedFeatured === "popular" && searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
       filters.playStyles.length > 0 ||
@@ -806,6 +819,7 @@ export async function GET(request: Request) {
       filters,
       limit,
       page,
+      featured: selectedFeatured,
       platforms: selectedPlatforms,
       popularGamesSource: isPopularRequest ? popularGamesSource : undefined,
       query: searchQuery,
@@ -944,6 +958,7 @@ export async function GET(request: Request) {
       hasMore,
       platforms: selectedPlatforms,
       sort: selectedSort,
+      featured: selectedFeatured,
       countryCode,
       query: searchQuery,
       tags: {

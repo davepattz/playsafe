@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header"
 import Title from "@/components/Title"
 import Filters from "@/components/Filters"
+import Featured, { type FeaturedOption } from "@/components/Featured"
 import Search from "@/components/Search"
 import Results from "@/components/Results"
 import Sidebar from "@/components/Sidebar"
@@ -18,7 +19,8 @@ export default function Home() {
   const [applyPopularFilters, setApplyPopularFilters] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Popular");
+  const [selectedSort, setSelectedSort] = useState("Release date descending");
+  const [selectedFeatured, setSelectedFeatured] = useState<FeaturedOption>("popular");
   const updateSelectedPlayStyles: typeof setSelectedPlayStyles = (value) => {
     setApplyPopularFilters(true);
     setSelectedPlayStyles(value);
@@ -54,6 +56,10 @@ export default function Home() {
           selectedSort={selectedSort}
           setSelectedSort={setSelectedSort}
         />
+        <Featured
+          selectedFeatured={selectedFeatured}
+          setSelectedFeatured={setSelectedFeatured}
+        />
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
@@ -65,6 +71,7 @@ export default function Home() {
               applyPopularFilters={applyPopularFilters}
               searchQuery={searchQuery}
               selectedSort={selectedSort}
+              selectedFeatured={selectedFeatured}
             />
           </div>
 
