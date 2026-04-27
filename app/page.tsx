@@ -19,7 +19,7 @@ export default function Home() {
   const [applyPopularFilters, setApplyPopularFilters] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Release date descending");
+  const [selectedSort, setSelectedSort] = useState("Newest to oldest");
   const [selectedFeatured, setSelectedFeatured] = useState<FeaturedOption>("popular");
   const updateSelectedPlayStyles: typeof setSelectedPlayStyles = (value) => {
     setApplyPopularFilters(true);

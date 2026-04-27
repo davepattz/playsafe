@@ -428,11 +428,15 @@ function sortGames(games: SteamGame[], selectedSort: string) {
     return [...games].sort((a, b) => parsePriceValue(b.price) - parsePriceValue(a.price));
   }
 
-  if (selectedSort === "Release date ascending") {
+  if (selectedSort === "Oldest to newest" || selectedSort === "Release date ascending") {
     return [...games].sort((a, b) => parseReleaseDateValue(a.releaseDate) - parseReleaseDateValue(b.releaseDate));
   }
 
-  if (selectedSort === "Release date descending" || selectedSort === "Newest releases") {
+  if (
+    selectedSort === "Newest to oldest" ||
+    selectedSort === "Release date descending" ||
+    selectedSort === "Newest releases"
+  ) {
     return [...games].sort((a, b) => parseReleaseDateValue(b.releaseDate) - parseReleaseDateValue(a.releaseDate));
   }
 
@@ -783,7 +787,7 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "Release date descending";
+    const selectedSort = searchParams.get("sort") ?? "Newest to oldest";
     const selectedFeatured = getSelectedFeatured(searchParams);
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";

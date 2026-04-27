@@ -78,8 +78,8 @@ export default function Search({
                 onChange={(e) => setSelectedSort(e.target.value)}
                 className="appearance-none bg-transparent pr-6 text-[18px] font-bold font-['Lato'] text-right outline-none cursor-pointer"
               >
-                <option>Release date descending</option>
-                <option>Release date ascending</option>
+                <option>Newest to oldest</option>
+                <option>Oldest to newest</option>
                 <option>Title A-Z</option>
                 <option>Title Z-A</option>
                 <option>Price low to high</option>
