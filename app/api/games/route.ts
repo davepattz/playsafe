@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGames } from "@/lib/popularGames";
+import { popularGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
 import {
   createSteamResultsCacheKey,
   readSteamResultsCache,
@@ -27,8 +27,8 @@ const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
 const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
-type FeaturedKey = "popular" | "new-releases" | "all";
-type PopularGameSource = (typeof popularGames)[number];
+type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "all";
+type PopularGameSource = (typeof popularGames | typeof sharedSplitScreenCoopGames)[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -146,7 +146,11 @@ function getSelectedPlatforms(searchParams: URLSearchParams): PlatformKey[] {
 function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
   const featured = searchParams.get("featured");
 
-  if (featured === "all" || featured === "new-releases") {
+  if (
+    featured === "all" ||
+    featured === "new-releases" ||
+    featured === "shared-split-screen-coop"
+  ) {
     return featured;
   }
 
@@ -669,11 +673,17 @@ async function getPopularGamesSource() {
   const sourceGames = cachedSource.payload?.games?.filter(isPopularGameSource) ?? [];
 
   if (sourceGames.length > 0) {
+    const sourceAppIds = new Set(sourceGames.map((game) => game.appId));
+    const localAdditions = popularGames.filter((game) => !sourceAppIds.has(game.appId));
+    const mergedGames = [...sourceGames, ...localAdditions];
+
     if (process.env.NODE_ENV === "development") {
-      console.info(`Popular games source: supabase (${sourceGames.length})`);
+      console.info(
+        `Popular games source: supabase (${sourceGames.length}) + local (${localAdditions.length})`,
+      );
     }
 
-    return sourceGames;
+    return mergedGames;
   }
 
   if (process.env.NODE_ENV === "development") {
@@ -821,7 +831,9 @@ export async function GET(request: Request) {
     const endIndex = startIndex + limit;
     const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
-    const isPopularRequest = selectedFeatured === "popular" && searchQuery.length === 0;
+    const isCuratedFeaturedRequest =
+      (selectedFeatured === "popular" || selectedFeatured === "shared-split-screen-coop") &&
+      searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
       filters.playStyles.length > 0 ||
@@ -833,7 +845,11 @@ export async function GET(request: Request) {
       : hasActiveFilters
         ? FILTERED_MAX_BATCHES
         : DEFAULT_MAX_BATCHES;
-    const popularGamesSource = isPopularRequest ? await getPopularGamesSource() : [];
+    const curatedGamesSource = isCuratedFeaturedRequest
+      ? selectedFeatured === "shared-split-screen-coop"
+        ? sharedSplitScreenCoopGames
+        : await getPopularGamesSource()
+      : [];
     const cacheKey = createSteamResultsCacheKey({
       filterBehaviorVersion: FILTER_BEHAVIOR_VERSION,
       applyPopularFilters,
@@ -843,7 +859,7 @@ export async function GET(request: Request) {
       page,
       featured: selectedFeatured,
       platforms: selectedPlatforms,
-      popularGamesSource: isPopularRequest ? popularGamesSource : undefined,
+      curatedGamesSource: isCuratedFeaturedRequest ? curatedGamesSource : undefined,
       query: searchQuery,
       sort: selectedSort,
     });
@@ -864,17 +880,17 @@ export async function GET(request: Request) {
       logSteamResultsCacheStatus("miss");
     }
 
-    const acceptedGames: SteamGame[] = isPopularRequest
+    const acceptedGames: SteamGame[] = isCuratedFeaturedRequest
       ? await fetchPopularGames(
           countryCode,
           selectedPlatforms,
           filters,
           applyPopularFilters,
-          popularGamesSource,
+          curatedGamesSource,
         )
       : [];
 
-    if (!isPopularRequest) {
+    if (!isCuratedFeaturedRequest) {
       const matches: SteamSearchItem[] = [];
       const seenAppIds = new Set<number>();
 

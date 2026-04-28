@@ -19,6 +19,7 @@ export const gameTypeOptions = [
   "Casual",
   "Cozy",
   "Cute",
+  "Education",
   "Funny",
   "Open World",
   "Party",

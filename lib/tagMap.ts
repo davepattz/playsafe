@@ -21,6 +21,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   "Dark Comedy": 1649,
   "Dark Humor": 5923,
   "Dating Sim": 9551,
+  Education: 1036,
   Fighting: 1743,
   Funny: 4136,
   "Hack and Slash": 1646,
