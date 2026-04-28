@@ -55,6 +55,7 @@ export const filterOptions = [
   "Shooter",
   "Sexual Content",
   "Third-Person Shooter",
+  "Thriller",
   "Violent",
   "Wargame",
 ];

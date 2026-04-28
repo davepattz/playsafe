@@ -48,6 +48,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   Difficult: 4026,
   Shooter: 1775,
   "Third-Person Shooter": 3814,
+  Thriller: 4064,
   Horror: 1667,
   Wargame: 4684,
 };

@@ -12,6 +12,7 @@ export const badLanguageTerms = [
   "cock",
   "cult",
   "c.u.l.t.",
+  "occult",
   "cunt",
   "daddy",
   "damn",
