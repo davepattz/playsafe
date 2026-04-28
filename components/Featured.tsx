@@ -1,6 +1,10 @@
 "use client";
 
-export type FeaturedOption = "popular" | "new-releases" | "shared-split-screen-coop";
+export type FeaturedOption =
+  | "popular"
+  | "new-releases"
+  | "shared-split-screen-coop"
+  | "racing";
 
 interface FeaturedProps {
   selectedFeatured: FeaturedOption;
@@ -14,6 +18,7 @@ const featuredOptions: Array<{
   { label: "Popular", value: "popular" },
   { label: "New releases", value: "new-releases" },
   { label: "Split screen", value: "shared-split-screen-coop" },
+  { label: "Racing", value: "racing" },
 ];
 
 export default function Featured({

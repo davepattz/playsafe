@@ -198,3 +198,76 @@ export const sharedSplitScreenCoopGames = [
     platforms: ["windows"],
   },
 ];
+
+export const racingGames = [
+  {
+    appId: 284160,
+    name: "BeamNG.drive",
+    releaseDate: "May 29, 2015",
+    priceLabel: "See Steam",
+    platforms: ["windows", "linux"],
+  },
+  {
+    appId: 2737300,
+    name: "Parking Garage Rally Circuit",
+    releaseDate: "Sep 20, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2486820,
+    name: "Sonic Racing: CrossWorlds",
+    releaseDate: "Sep 25, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1551360,
+    name: "Forza Horizon 5",
+    releaseDate: "Nov 8, 2021",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1205970,
+    name: "MX vs ATV Legends",
+    releaseDate: "Jun 28, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2581370,
+    name: "Monster Energy Supercross 25 - The Official Video Game",
+    releaseDate: "Apr 10, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 228380,
+    name: "Wreckfest",
+    releaseDate: "Jun 14, 2018",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1799930,
+    name: "Redout 2",
+    releaseDate: "Jun 16, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2824660,
+    name: "Old School Rally",
+    releaseDate: "Dec 3, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 3239650,
+    name: "Garfield Kart 2 - All You Can Drift",
+    releaseDate: "Sep 10, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+];

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
+import { popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
 import {
   createSteamResultsCacheKey,
   readSteamResultsCache,
@@ -27,8 +27,9 @@ const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
 const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
-type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "all";
-type PopularGameSource = (typeof popularGames | typeof sharedSplitScreenCoopGames)[number];
+type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "racing" | "all";
+type PopularGameSource =
+  (typeof popularGames | typeof sharedSplitScreenCoopGames | typeof racingGames)[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -149,7 +150,8 @@ function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
   if (
     featured === "all" ||
     featured === "new-releases" ||
-    featured === "shared-split-screen-coop"
+    featured === "shared-split-screen-coop" ||
+    featured === "racing"
   ) {
     return featured;
   }
@@ -832,7 +834,9 @@ export async function GET(request: Request) {
     const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
     const isCuratedFeaturedRequest =
-      (selectedFeatured === "popular" || selectedFeatured === "shared-split-screen-coop") &&
+      (selectedFeatured === "popular" ||
+        selectedFeatured === "shared-split-screen-coop" ||
+        selectedFeatured === "racing") &&
       searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
@@ -848,6 +852,8 @@ export async function GET(request: Request) {
     const curatedGamesSource = isCuratedFeaturedRequest
       ? selectedFeatured === "shared-split-screen-coop"
         ? sharedSplitScreenCoopGames
+        : selectedFeatured === "racing"
+          ? racingGames
         : await getPopularGamesSource()
       : [];
     const cacheKey = createSteamResultsCacheKey({
