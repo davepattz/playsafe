@@ -22,6 +22,9 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
+const FILTER_BEHAVIOR_VERSION = 2;
+const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
+const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
 type FeaturedKey = "popular" | "new-releases" | "all";
@@ -626,6 +629,10 @@ function containsBadLanguage(value: string) {
   });
 }
 
+function containsThirdPersonShooter(value: string) {
+  return normalizeSearchText(value).includes(THIRD_PERSON_SHOOTER_TEXT);
+}
+
 function needsHoverTagCheck(hiddenLabels: string[]) {
   return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
 }
@@ -685,6 +692,8 @@ async function fetchPopularGames(
 ) {
   const acceptedGames: SteamGame[] = [];
   const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
+  const hideThirdPersonShooter =
+    applyFilters && filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
   const shouldFetchHoverTags =
     applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
   const detailsByAppId = await fetchAppDetailsBatch(
@@ -745,6 +754,14 @@ async function fetchPopularGames(
       hideBadLanguage &&
       (containsBadLanguage(details?.name ?? popularGame.name) ||
         containsBadLanguage(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
+    if (
+      hideThirdPersonShooter &&
+      (containsThirdPersonShooter(details?.name ?? popularGame.name) ||
+        containsThirdPersonShooter(details?.short_description ?? ""))
     ) {
       continue;
     }
@@ -818,6 +835,7 @@ export async function GET(request: Request) {
         : DEFAULT_MAX_BATCHES;
     const popularGamesSource = isPopularRequest ? await getPopularGamesSource() : [];
     const cacheKey = createSteamResultsCacheKey({
+      filterBehaviorVersion: FILTER_BEHAVIOR_VERSION,
       applyPopularFilters,
       countryCode,
       filters,
@@ -896,6 +914,7 @@ export async function GET(request: Request) {
       }
 
       const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
+      const hideThirdPersonShooter = filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
       const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
       for (const match of matches) {
@@ -922,6 +941,14 @@ export async function GET(request: Request) {
           hideBadLanguage &&
           (containsBadLanguage(details?.name ?? match.title) ||
             containsBadLanguage(details?.short_description ?? ""))
+        ) {
+          continue;
+        }
+
+        if (
+          hideThirdPersonShooter &&
+          (containsThirdPersonShooter(details?.name ?? match.title) ||
+            containsThirdPersonShooter(details?.short_description ?? ""))
         ) {
           continue;
         }
