@@ -19,6 +19,7 @@ export const gameTypeOptions = [
   "Casual",
   "Cozy",
   "Cute",
+  "Education",
   "Funny",
   "Open World",
   "Party",
@@ -54,6 +55,7 @@ export const filterOptions = [
   "Shooter",
   "Sexual Content",
   "Third-Person Shooter",
+  "Thriller",
   "Violent",
   "Wargame",
 ];

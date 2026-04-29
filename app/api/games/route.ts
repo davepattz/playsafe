@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGameAppIds, popularGames } from "@/lib/popularGames";
+import { popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
+import {
+  createSteamResultsCacheKey,
+  readSteamResultsCache,
+  type SteamResultsCacheStatus,
+  writeSteamResultsCache,
+} from "@/lib/steamResultsCache";
 
 const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
@@ -15,8 +21,15 @@ const DEFAULT_MAX_BATCHES = 4;
 const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
+const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
+const FILTER_BEHAVIOR_VERSION = 3;
+const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
+const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
+type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "racing" | "all";
+type PopularGameSource =
+  (typeof popularGames | typeof sharedSplitScreenCoopGames | typeof racingGames)[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -47,6 +60,28 @@ interface SteamGame {
   price: string;
   releaseDate: string;
   storeUrl: string;
+}
+
+interface GamesResponse {
+  filters: FilterGroups;
+  page: number;
+  hasMore: boolean;
+  platforms: PlatformKey[];
+  sort: string;
+  featured: FeaturedKey;
+  countryCode: string;
+  query: string;
+  tags: {
+    gameTypes: number[];
+    playStyles: string[];
+    hidden: number[];
+  };
+  total: number;
+  games: SteamGame[];
+}
+
+interface PopularGamesSourcePayload {
+  games?: PopularGameSource[];
 }
 
 interface SteamAppDetailsSuccess {
@@ -82,6 +117,12 @@ interface SteamAppDetailsFailure {
 
 type SteamAppDetailsResponse = Record<string, SteamAppDetailsSuccess | SteamAppDetailsFailure>;
 
+function logSteamResultsCacheStatus(status: SteamResultsCacheStatus) {
+  if (process.env.NODE_ENV === "development") {
+    console.info(`Steam results cache: ${status}`);
+  }
+}
+
 function getMultiValue(searchParams: URLSearchParams, key: string) {
   return searchParams
     .getAll(key)
@@ -101,6 +142,21 @@ function getSelectedPlatforms(searchParams: URLSearchParams): PlatformKey[] {
   }
 
   return selected;
+}
+
+function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
+  const featured = searchParams.get("featured");
+
+  if (
+    featured === "all" ||
+    featured === "new-releases" ||
+    featured === "shared-split-screen-coop" ||
+    featured === "racing"
+  ) {
+    return featured;
+  }
+
+  return "popular";
 }
 
 function getPopularFallbackPlatforms(platforms: string[]) {
@@ -381,11 +437,15 @@ function sortGames(games: SteamGame[], selectedSort: string) {
     return [...games].sort((a, b) => parsePriceValue(b.price) - parsePriceValue(a.price));
   }
 
-  if (selectedSort === "Release date ascending") {
+  if (selectedSort === "Oldest to newest" || selectedSort === "Release date ascending") {
     return [...games].sort((a, b) => parseReleaseDateValue(a.releaseDate) - parseReleaseDateValue(b.releaseDate));
   }
 
-  if (selectedSort === "Release date descending" || selectedSort === "Newest releases") {
+  if (
+    selectedSort === "Newest to oldest" ||
+    selectedSort === "Release date descending" ||
+    selectedSort === "Newest releases"
+  ) {
     return [...games].sort((a, b) => parseReleaseDateValue(b.releaseDate) - parseReleaseDateValue(a.releaseDate));
   }
 
@@ -575,6 +635,10 @@ function containsBadLanguage(value: string) {
   });
 }
 
+function containsThirdPersonShooter(value: string) {
+  return normalizeSearchText(value).includes(THIRD_PERSON_SHOOTER_TEXT);
+}
+
 function needsHoverTagCheck(hiddenLabels: string[]) {
   return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
 }
@@ -587,19 +651,69 @@ function hasPriceAndReleaseDate(details: SteamAppDetailsSuccess["data"] | undefi
   );
 }
 
+function isPopularGameSource(value: unknown): value is PopularGameSource {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const game = value as Partial<PopularGameSource>;
+
+  return (
+    typeof game.appId === "number" &&
+    typeof game.name === "string" &&
+    typeof game.releaseDate === "string" &&
+    typeof game.priceLabel === "string" &&
+    Array.isArray(game.platforms) &&
+    game.platforms.every((platform) => typeof platform === "string")
+  );
+}
+
+async function getPopularGamesSource() {
+  const cachedSource = await readSteamResultsCache<PopularGamesSourcePayload>(
+    POPULAR_GAMES_SOURCE_CACHE_KEY,
+  );
+  const sourceGames = cachedSource.payload?.games?.filter(isPopularGameSource) ?? [];
+
+  if (sourceGames.length > 0) {
+    const sourceAppIds = new Set(sourceGames.map((game) => game.appId));
+    const localAdditions = popularGames.filter((game) => !sourceAppIds.has(game.appId));
+    const mergedGames = [...sourceGames, ...localAdditions];
+
+    if (process.env.NODE_ENV === "development") {
+      console.info(
+        `Popular games source: supabase (${sourceGames.length}) + local (${localAdditions.length})`,
+      );
+    }
+
+    return mergedGames;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.info(`Popular games source: local fallback (${popularGames.length})`);
+  }
+
+  return popularGames;
+}
+
 async function fetchPopularGames(
   countryCode: string,
   selectedPlatforms: PlatformKey[],
   filters: FilterGroups,
   applyFilters: boolean,
+  popularGamesSource: PopularGameSource[],
 ) {
   const acceptedGames: SteamGame[] = [];
   const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
+  const hideThirdPersonShooter =
+    applyFilters && filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
   const shouldFetchHoverTags =
     applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
-  const detailsByAppId = await fetchAppDetailsBatch(popularGameAppIds, countryCode);
+  const detailsByAppId = await fetchAppDetailsBatch(
+    popularGamesSource.map((game) => game.appId),
+    countryCode,
+  );
 
-  for (const popularGame of popularGames) {
+  for (const popularGame of popularGamesSource) {
     const appId = popularGame.appId;
     let details = detailsByAppId.get(appId);
 
@@ -656,6 +770,14 @@ async function fetchPopularGames(
       continue;
     }
 
+    if (
+      hideThirdPersonShooter &&
+      (containsThirdPersonShooter(details?.name ?? popularGame.name) ||
+        containsThirdPersonShooter(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
     acceptedGames.push({
       id: appId,
       name: details?.name ?? popularGame.name,
@@ -694,9 +816,11 @@ export async function GET(request: Request) {
       hidden: rawFilters.hidden,
     };
     const selectedPlatforms = getSelectedPlatforms(searchParams);
-    const selectedSort = searchParams.get("sort") ?? "Popular";
+    const selectedSort = searchParams.get("sort") ?? "Newest to oldest";
+    const selectedFeatured = getSelectedFeatured(searchParams);
     const searchQuery = (searchParams.get("query") ?? "").trim();
     const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";
+    const refreshCache = searchParams.get("refreshCache") === "true";
     const limit = Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
@@ -709,7 +833,11 @@ export async function GET(request: Request) {
     const endIndex = startIndex + limit;
     const targetAcceptedCount = endIndex + limit;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
-    const isPopularRequest = selectedSort === "Popular" && searchQuery.length === 0;
+    const isCuratedFeaturedRequest =
+      (selectedFeatured === "popular" ||
+        selectedFeatured === "shared-split-screen-coop" ||
+        selectedFeatured === "racing") &&
+      searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
       filters.playStyles.length > 0 ||
@@ -721,12 +849,54 @@ export async function GET(request: Request) {
       : hasActiveFilters
         ? FILTERED_MAX_BATCHES
         : DEFAULT_MAX_BATCHES;
+    const curatedGamesSource = isCuratedFeaturedRequest
+      ? selectedFeatured === "shared-split-screen-coop"
+        ? sharedSplitScreenCoopGames
+        : selectedFeatured === "racing"
+          ? racingGames
+        : await getPopularGamesSource()
+      : [];
+    const cacheKey = createSteamResultsCacheKey({
+      filterBehaviorVersion: FILTER_BEHAVIOR_VERSION,
+      applyPopularFilters,
+      countryCode,
+      filters,
+      limit,
+      page,
+      featured: selectedFeatured,
+      platforms: selectedPlatforms,
+      curatedGamesSource: isCuratedFeaturedRequest ? curatedGamesSource : undefined,
+      query: searchQuery,
+      sort: selectedSort,
+    });
 
-    const acceptedGames: SteamGame[] = isPopularRequest
-      ? await fetchPopularGames(countryCode, selectedPlatforms, filters, applyPopularFilters)
+    if (!refreshCache) {
+      const cachedResult = await readSteamResultsCache<GamesResponse>(cacheKey);
+
+      logSteamResultsCacheStatus(cachedResult.status);
+
+      if (cachedResult.payload) {
+        return NextResponse.json(cachedResult.payload, {
+          headers: {
+            "x-playsafe-cache": "hit",
+          },
+        });
+      }
+    } else {
+      logSteamResultsCacheStatus("miss");
+    }
+
+    const acceptedGames: SteamGame[] = isCuratedFeaturedRequest
+      ? await fetchPopularGames(
+          countryCode,
+          selectedPlatforms,
+          filters,
+          applyPopularFilters,
+          curatedGamesSource,
+        )
       : [];
 
-    if (!isPopularRequest) {
+    if (!isCuratedFeaturedRequest) {
       const matches: SteamSearchItem[] = [];
       const seenAppIds = new Set<number>();
 
@@ -766,6 +936,7 @@ export async function GET(request: Request) {
       }
 
       const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
+      const hideThirdPersonShooter = filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
       const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
       for (const match of matches) {
@@ -792,6 +963,14 @@ export async function GET(request: Request) {
           hideBadLanguage &&
           (containsBadLanguage(details?.name ?? match.title) ||
             containsBadLanguage(details?.short_description ?? ""))
+        ) {
+          continue;
+        }
+
+        if (
+          hideThirdPersonShooter &&
+          (containsThirdPersonShooter(details?.name ?? match.title) ||
+            containsThirdPersonShooter(details?.short_description ?? ""))
         ) {
           continue;
         }
@@ -826,13 +1005,13 @@ export async function GET(request: Request) {
     const sortedGames = sortGames(acceptedGames, selectedSort);
     const games = sortedGames.slice(startIndex, endIndex);
     const hasMore = sortedGames.length > endIndex;
-
-    return NextResponse.json({
+    const payload: GamesResponse = {
       filters,
       page,
       hasMore,
       platforms: selectedPlatforms,
       sort: selectedSort,
+      featured: selectedFeatured,
       countryCode,
       query: searchQuery,
       tags: {
@@ -842,6 +1021,14 @@ export async function GET(request: Request) {
       },
       total: sortedGames.length,
       games,
+    };
+
+    await writeSteamResultsCache(cacheKey, payload);
+
+    return NextResponse.json(payload, {
+      headers: {
+        "x-playsafe-cache": "miss",
+      },
     });
   } catch (error) {
     console.error("Failed to fetch Steam games", error);

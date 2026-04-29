@@ -102,6 +102,13 @@ export const popularGames = [
     platforms: ["windows", "macos"],
   },
   {
+    appId: 1586800,
+    name: "Lil Gator Game",
+    releaseDate: "Dec 14, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
     appId: 1177980,
     name: "Little Kitty, Big City",
     releaseDate: "May 9, 2024",
@@ -118,3 +125,149 @@ export const popularGames = [
 ];
 
 export const popularGameAppIds = popularGames.map((game) => game.appId);
+
+export const sharedSplitScreenCoopGames = [
+  {
+    appId: 1211020,
+    name: "Wobbly Life",
+    releaseDate: "Sep 18, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 253230,
+    name: "A Hat in Time",
+    releaseDate: "Oct 5, 2017",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 837470,
+    name: "Untitled Goose Game",
+    releaseDate: "Sep 23, 2020",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos"],
+  },
+  {
+    appId: 477160,
+    name: "Human Fall Flat",
+    releaseDate: "Jul 22, 2016",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos", "linux"],
+  },
+  {
+    appId: 584400,
+    name: "Sonic Mania",
+    releaseDate: "Aug 29, 2017",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2968420,
+    name: "PowerWash Simulator 2",
+    releaseDate: "Oct 23, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 920210,
+    name: "LEGO Star Wars: The Skywalker Saga",
+    releaseDate: "Apr 5, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 829110,
+    name: "LEGO DC Super-Villains",
+    releaseDate: "Oct 16, 2018",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos"],
+  },
+  {
+    appId: 2602020,
+    name: "The Smurfs - Dreams",
+    releaseDate: "Nov 7, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1934870,
+    name: "Wirm",
+    releaseDate: "Dec 9, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+];
+
+export const racingGames = [
+  {
+    appId: 284160,
+    name: "BeamNG.drive",
+    releaseDate: "May 29, 2015",
+    priceLabel: "See Steam",
+    platforms: ["windows", "linux"],
+  },
+  {
+    appId: 2737300,
+    name: "Parking Garage Rally Circuit",
+    releaseDate: "Sep 20, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2486820,
+    name: "Sonic Racing: CrossWorlds",
+    releaseDate: "Sep 25, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1551360,
+    name: "Forza Horizon 5",
+    releaseDate: "Nov 8, 2021",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1205970,
+    name: "MX vs ATV Legends",
+    releaseDate: "Jun 28, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2581370,
+    name: "Monster Energy Supercross 25 - The Official Video Game",
+    releaseDate: "Apr 10, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 228380,
+    name: "Wreckfest",
+    releaseDate: "Jun 14, 2018",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1799930,
+    name: "Redout 2",
+    releaseDate: "Jun 16, 2022",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2824660,
+    name: "Old School Rally",
+    releaseDate: "Dec 3, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 3239650,
+    name: "Garfield Kart 2 - All You Can Drift",
+    releaseDate: "Sep 10, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+];
