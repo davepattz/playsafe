@@ -1,9 +1,21 @@
 export default function Sidebar() {
   return (
     <div className="flex justify-center">
-        <div className="bg-gray-200 w-[300px] h-[600px] flex items-center justify-center text-gray-500">
-          300 × 600
-        </div>
-      </div>
+      <a
+        href="https://www.instant-gaming.com/en/14787-buy-lil-gator-game-pc-game-steam/?igr=gamer-c3010e4"
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        aria-label="Buy Lil Gator Game on Instant Gaming"
+        className="block w-full max-w-[300px]"
+      >
+        <img
+          src="/banners/lilgator.avif"
+          alt="Lil Gator Game"
+          className="h-auto w-full"
+          width={600}
+          height={800}
+        />
+      </a>
+    </div>
   )
 }

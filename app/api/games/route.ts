@@ -22,9 +22,11 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 3;
+const FILTER_BEHAVIOR_VERSION = 4;
 const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
 const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
+const WARGAME_FILTER = "Wargame";
+const WARGAME_TEXT_TERMS = ["wargame", "war", "warfare"];
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
 type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "racing" | "all";
@@ -639,6 +641,28 @@ function containsThirdPersonShooter(value: string) {
   return normalizeSearchText(value).includes(THIRD_PERSON_SHOOTER_TEXT);
 }
 
+function containsAnyTextTerm(value: string, terms: string[]) {
+  if (!value) {
+    return false;
+  }
+
+  return terms.some((term) => {
+    const normalizedTerm = normalizeSearchText(term);
+
+    if (!normalizedTerm) {
+      return false;
+    }
+
+    const pattern = new RegExp(`\\b${escapeRegExp(normalizedTerm)}\\b`, "i");
+
+    return pattern.test(normalizeSearchText(value));
+  });
+}
+
+function containsWargameTerm(value: string) {
+  return containsAnyTextTerm(value, WARGAME_TEXT_TERMS);
+}
+
 function needsHoverTagCheck(hiddenLabels: string[]) {
   return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
 }
@@ -706,6 +730,7 @@ async function fetchPopularGames(
   const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
   const hideThirdPersonShooter =
     applyFilters && filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
+  const hideWargame = applyFilters && filters.hidden.includes(WARGAME_FILTER);
   const shouldFetchHoverTags =
     applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
   const detailsByAppId = await fetchAppDetailsBatch(
@@ -774,6 +799,14 @@ async function fetchPopularGames(
       hideThirdPersonShooter &&
       (containsThirdPersonShooter(details?.name ?? popularGame.name) ||
         containsThirdPersonShooter(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
+    if (
+      hideWargame &&
+      (containsWargameTerm(details?.name ?? popularGame.name) ||
+        containsWargameTerm(details?.short_description ?? ""))
     ) {
       continue;
     }
@@ -937,6 +970,7 @@ export async function GET(request: Request) {
 
       const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
       const hideThirdPersonShooter = filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
+      const hideWargame = filters.hidden.includes(WARGAME_FILTER);
       const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
       for (const match of matches) {
@@ -971,6 +1005,14 @@ export async function GET(request: Request) {
           hideThirdPersonShooter &&
           (containsThirdPersonShooter(details?.name ?? match.title) ||
             containsThirdPersonShooter(details?.short_description ?? ""))
+        ) {
+          continue;
+        }
+
+        if (
+          hideWargame &&
+          (containsWargameTerm(details?.name ?? match.title) ||
+            containsWargameTerm(details?.short_description ?? ""))
         ) {
           continue;
         }
