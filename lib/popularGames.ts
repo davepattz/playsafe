@@ -270,4 +270,11 @@ export const racingGames = [
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
+  {
+    appId: 2011780,
+    name: "Yellow Taxi Goes Vroom",
+    releaseDate: "Apr 9, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
 ];
