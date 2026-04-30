@@ -15,6 +15,8 @@ interface GameResult {
   shortDescription: string;
   platforms: PlatformKey[];
   price: string;
+  originalPrice?: string;
+  discountPercent?: number;
   releaseDate: string;
   storeUrl: string;
 }
@@ -256,8 +258,16 @@ export default function Results({
               </div>
 
               <div className="p-5 pt-0 md:pt-5 flex flex-col justify-between items-end md:min-w-[180px]">
-                <div className="font-['Lato'] font-bold text-[30px] text-black leading-none text-right">
-                  {game.price}
+                <div className="text-right">
+                  <div className="font-['Lato'] font-bold text-[30px] text-black leading-none">
+                    {game.price}
+                  </div>
+                  {game.originalPrice && game.discountPercent ? (
+                    <div className="mt-2 font-['Lato'] text-[14px] font-bold leading-none text-black/70">
+                      <span className="line-through">{game.originalPrice}</span>
+                      <span className="ml-2">-{game.discountPercent}%</span>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="font-['Lato'] font-bold text-[14px] text-black uppercase mt-2 md:mt-0 text-right">
                   {game.releaseDate}
