@@ -39,6 +39,7 @@ export const filterOptions = [
   "Dark Comedy",
   "Dating Sim",
   "Difficult",
+  "Drama",
   "Fighting",
   "Gore",
   "Hack and Slash",
