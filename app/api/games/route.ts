@@ -22,7 +22,7 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 4;
+const FILTER_BEHAVIOR_VERSION = 5;
 const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
 const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 const WARGAME_FILTER = "Wargame";
@@ -60,6 +60,8 @@ interface SteamGame {
   shortDescription: string;
   platforms: PlatformKey[];
   price: string;
+  originalPrice?: string;
+  discountPercent?: number;
   releaseDate: string;
   storeUrl: string;
 }
@@ -104,7 +106,9 @@ interface SteamAppDetailsSuccess {
       date?: string;
     };
     price_overview?: {
+      discount_percent?: number;
       final_formatted?: string;
+      initial_formatted?: string;
     };
     is_free?: boolean;
     header_image?: string;
@@ -824,6 +828,14 @@ async function fetchPopularGames(
         details?.is_free
           ? "Free"
           : details?.price_overview?.final_formatted ?? popularGame.priceLabel,
+      originalPrice:
+        details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+          ? details.price_overview.initial_formatted
+          : undefined,
+      discountPercent:
+        details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+          ? details.price_overview.discount_percent
+          : undefined,
       releaseDate: details?.release_date?.date ?? popularGame.releaseDate,
       storeUrl: `https://store.steampowered.com/app/${appId}/`,
     });
@@ -1038,6 +1050,14 @@ export async function GET(request: Request) {
           shortDescription: details?.short_description ?? "",
           platforms: detailPlatforms.length > 0 ? detailPlatforms : match.platforms,
           price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
+          originalPrice:
+            details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+              ? details.price_overview.initial_formatted
+              : undefined,
+          discountPercent:
+            details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+              ? details.price_overview.discount_percent
+              : undefined,
           releaseDate: details?.release_date?.date ?? match.releaseDate,
           storeUrl: normalizeStoreUrl(match.url, match.appId),
         });
