@@ -16,10 +16,15 @@ export const playStyleOptions = [
 export const gameTypeOptions = [
   "2D",
   "Action",
+  "Adventure",
   "Casual",
+  "Cartoony",
   "Cozy",
+  "Crafting",
   "Cute",
+  "Driving",
   "Education",
+  "Farming Sim",
   "Funny",
   "Open World",
   "Party",
@@ -27,9 +32,15 @@ export const gameTypeOptions = [
   "Platformer",
   "Puzzle",
   "Racing",
+  "Relaxing",
+  "Retro",
   "RPG",
   "Sandbox",
+  "Space",
   "Sports",
+  "Turn-Based",
+  "Voxel",
+  "Wholesome",
 ];
 
 export const filterOptions = [
