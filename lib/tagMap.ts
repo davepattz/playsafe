@@ -18,6 +18,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   Combat: 3993,
   Cozy: 97376,
   Cute: 4726,
+  "Dark Fantasy": 4604,
   "Dark Comedy": 1649,
   "Dark Humor": 5923,
   "Dating Sim": 9551,
@@ -51,5 +52,6 @@ export const TAG_MAP: Record<string, number | number[]> = {
   "Third-Person Shooter": 3814,
   Thriller: 4064,
   Horror: 1667,
+  Hunting: 9564,
   Wargame: 4684,
 };

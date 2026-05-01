@@ -35,6 +35,7 @@ export const gameTypeOptions = [
 export const filterOptions = [
   "Bad Language",
   "Combat",
+  "Dark Fantasy",
   "Dark Humor",
   "Dark Comedy",
   "Dating Sim",
@@ -45,6 +46,7 @@ export const filterOptions = [
   "Hack and Slash",
   "Hentai",
   "Horror",
+  "Hunting",
   "Mature",
   "NSFW",
   "Nudity",
