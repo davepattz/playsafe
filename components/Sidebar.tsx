@@ -13,7 +13,7 @@ export default function Sidebar() {
           alt="Lil Gator Game"
           className="h-auto w-full"
           width={600}
-          height={800}
+          height={900}
         />
       </a>
     </div>
