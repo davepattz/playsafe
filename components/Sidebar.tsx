@@ -9,7 +9,7 @@ export default function Sidebar() {
         className="block w-full max-w-[300px]"
       >
         <img
-          src="/banners/lilgator.avif"
+          src="/banners/lilgator.png"
           alt="Lil Gator Game"
           className="h-auto w-full"
           width={600}
