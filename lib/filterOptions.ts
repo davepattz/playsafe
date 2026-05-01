@@ -38,6 +38,7 @@ export const gameTypeOptions = [
   "Sandbox",
   "Space",
   "Sports",
+  "Superhero",
   "Turn-Based",
   "Voxel",
   "Wholesome",

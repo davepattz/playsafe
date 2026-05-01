@@ -51,6 +51,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   "Sexual Content": 12095,
   Space: 1755,
   Sports: 701,
+  Superhero: 1671,
   "Turn-Based": 1677,
   Voxel: 1732,
   Wholesome: 552282,
