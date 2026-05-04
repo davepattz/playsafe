@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
+import { legoGames, popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
 import {
   createSteamResultsCacheKey,
   readSteamResultsCache,
@@ -30,9 +30,20 @@ const WARGAME_FILTER = "Wargame";
 const WARGAME_TEXT_TERMS = ["wargame", "war", "warfare"];
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
-type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "racing" | "all";
+type FeaturedKey =
+  | "popular"
+  | "new-releases"
+  | "shared-split-screen-coop"
+  | "racing"
+  | "lego"
+  | "all";
 type PopularGameSource =
-  (typeof popularGames | typeof sharedSplitScreenCoopGames | typeof racingGames)[number];
+  (
+    typeof popularGames |
+    typeof sharedSplitScreenCoopGames |
+    typeof racingGames |
+    typeof legoGames
+  )[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -158,7 +169,8 @@ function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
     featured === "all" ||
     featured === "new-releases" ||
     featured === "shared-split-screen-coop" ||
-    featured === "racing"
+    featured === "racing" ||
+    featured === "lego"
   ) {
     return featured;
   }
@@ -882,7 +894,8 @@ export async function GET(request: Request) {
     const isCuratedFeaturedRequest =
       (selectedFeatured === "popular" ||
         selectedFeatured === "shared-split-screen-coop" ||
-        selectedFeatured === "racing") &&
+        selectedFeatured === "racing" ||
+        selectedFeatured === "lego") &&
       searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
@@ -900,7 +913,9 @@ export async function GET(request: Request) {
         ? sharedSplitScreenCoopGames
         : selectedFeatured === "racing"
           ? racingGames
-        : await getPopularGamesSource()
+          : selectedFeatured === "lego"
+            ? legoGames
+            : await getPopularGamesSource()
       : [];
     const cacheKey = createSteamResultsCacheKey({
       filterBehaviorVersion: FILTER_BEHAVIOR_VERSION,

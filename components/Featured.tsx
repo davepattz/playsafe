@@ -4,7 +4,8 @@ export type FeaturedOption =
   | "popular"
   | "new-releases"
   | "shared-split-screen-coop"
-  | "racing";
+  | "racing"
+  | "lego";
 
 interface FeaturedProps {
   selectedFeatured: FeaturedOption;
@@ -19,6 +20,7 @@ const featuredOptions: Array<{
   { label: "New releases", value: "new-releases" },
   { label: "Split screen", value: "shared-split-screen-coop" },
   { label: "Racing", value: "racing" },
+  { label: "Lego", value: "lego" },
 ];
 
 export default function Featured({
