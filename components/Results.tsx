@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { type FeaturedOption } from "@/components/Featured";
 
 const SEARCH_DEBOUNCE_MS = 400;
+const FIRST_PAGE_RETRY_DELAY_MS = 1200;
 
 type PlatformKey = "windows" | "macos" | "linux";
 
@@ -130,13 +131,37 @@ export default function Results({
       }
 
       try {
-        const response = await fetch(`/api/games?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        const data = (await response.json()) as GamesResponse;
+        const fetchGamesPage = async () => {
+          const response = await fetch(`/api/games?${params.toString()}`, {
+            signal: controller.signal,
+          });
+          const data = (await response.json()) as GamesResponse;
 
-        if (!response.ok) {
-          throw new Error(data.error ?? "Failed to fetch games");
+          if (!response.ok) {
+            throw new Error(data.error ?? "Failed to fetch games");
+          }
+
+          return data;
+        };
+        let data: GamesResponse | null = null;
+
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            data = await fetchGamesPage();
+            break;
+          } catch (error) {
+            if (controller.signal.aborted || !isFirstPage || attempt > 0) {
+              throw error;
+            }
+
+            await new Promise((resolve) => {
+              window.setTimeout(resolve, FIRST_PAGE_RETRY_DELAY_MS);
+            });
+          }
+        }
+
+        if (!data) {
+          throw new Error("Failed to fetch games");
         }
 
         setGames((currentGames) => {
