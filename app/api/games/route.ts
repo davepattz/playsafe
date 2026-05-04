@@ -17,6 +17,7 @@ const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
 const STEAM_COUNTRY_CODE = "US";
 const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
+const APP_DETAILS_CHUNK_SIZE = 20;
 const DEFAULT_MAX_BATCHES = 4;
 const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
@@ -876,7 +877,7 @@ export async function GET(request: Request) {
     );
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const targetAcceptedCount = endIndex + limit;
+    const targetAcceptedCount = endIndex + 1;
     const { gameTypeTags, hiddenTags } = mapFiltersToTags(filters);
     const isCuratedFeaturedRequest =
       (selectedFeatured === "popular" ||
@@ -887,7 +888,7 @@ export async function GET(request: Request) {
       filters.gameTypes.length > 0 ||
       filters.playStyles.length > 0 ||
       filters.hidden.length > 0 ||
-      selectedPlatforms.length > 0 ||
+      selectedPlatforms.length < ALL_PLATFORMS.length ||
       searchQuery.length > 0;
     const maxBatches = searchQuery.length > 0
       ? SEARCH_QUERY_MAX_BATCHES
@@ -985,82 +986,108 @@ export async function GET(request: Request) {
       const hideWargame = filters.hidden.includes(WARGAME_FILTER);
       const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
-      for (const match of matches) {
+      for (let matchIndex = 0; matchIndex < matches.length; matchIndex += APP_DETAILS_CHUNK_SIZE) {
         if (acceptedGames.length >= targetAcceptedCount) {
           break;
         }
 
-        const details = await fetchAppDetails(match.appId, countryCode);
-        const hoverTags = shouldFetchHoverTags ? await fetchHoverTags(match.appId) : [];
+        const chunk = matches.slice(matchIndex, matchIndex + APP_DETAILS_CHUNK_SIZE);
+        const detailsByAppId = await fetchAppDetailsBatch(
+          chunk.map((match) => match.appId),
+          countryCode,
+        );
+        const hoverTagsByAppId = new Map<number, string[]>();
 
-        if (details?.type && details.type !== "game") {
-          continue;
+        if (shouldFetchHoverTags) {
+          const hoverTagResults = await Promise.all(
+            chunk.map(async (match) => ({
+              appId: match.appId,
+              hoverTags: await fetchHoverTags(match.appId),
+            })),
+          );
+
+          hoverTagResults.forEach(({ appId, hoverTags }) => {
+            hoverTagsByAppId.set(appId, hoverTags);
+          });
         }
 
-        if (shouldFetchHoverTags && matchesHiddenLabels(hoverTags, filters.hidden)) {
-          continue;
+        for (const match of chunk) {
+          if (acceptedGames.length >= targetAcceptedCount) {
+            break;
+          }
+
+          const details = detailsByAppId.get(match.appId);
+          const hoverTags = hoverTagsByAppId.get(match.appId) ?? [];
+
+          if (details?.type && details.type !== "game") {
+            continue;
+          }
+
+          if (shouldFetchHoverTags && matchesHiddenLabels(hoverTags, filters.hidden)) {
+            continue;
+          }
+
+          if (!matchesPlayStyles(details?.categories, filters.playStyles)) {
+            continue;
+          }
+
+          if (
+            hideBadLanguage &&
+            (containsBadLanguage(details?.name ?? match.title) ||
+              containsBadLanguage(details?.short_description ?? ""))
+          ) {
+            continue;
+          }
+
+          if (
+            hideThirdPersonShooter &&
+            (containsThirdPersonShooter(details?.name ?? match.title) ||
+              containsThirdPersonShooter(details?.short_description ?? ""))
+          ) {
+            continue;
+          }
+
+          if (
+            hideWargame &&
+            (containsWargameTerm(details?.name ?? match.title) ||
+              containsWargameTerm(details?.short_description ?? ""))
+          ) {
+            continue;
+          }
+
+          const detailPlatforms: PlatformKey[] = [];
+
+          if (details?.platforms?.windows) {
+            detailPlatforms.push("windows");
+          }
+
+          if (details?.platforms?.mac) {
+            detailPlatforms.push("macos");
+          }
+
+          if (details?.platforms?.linux) {
+            detailPlatforms.push("linux");
+          }
+
+          acceptedGames.push({
+            id: match.appId,
+            name: details?.name ?? match.title,
+            imageUrl: details?.header_image ?? details?.capsule_image ?? match.capsuleImage,
+            shortDescription: details?.short_description ?? "",
+            platforms: detailPlatforms.length > 0 ? detailPlatforms : match.platforms,
+            price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
+            originalPrice:
+              details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+                ? details.price_overview.initial_formatted
+                : undefined,
+            discountPercent:
+              details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
+                ? details.price_overview.discount_percent
+                : undefined,
+            releaseDate: details?.release_date?.date ?? match.releaseDate,
+            storeUrl: normalizeStoreUrl(match.url, match.appId),
+          });
         }
-
-        if (!matchesPlayStyles(details?.categories, filters.playStyles)) {
-          continue;
-        }
-
-        if (
-          hideBadLanguage &&
-          (containsBadLanguage(details?.name ?? match.title) ||
-            containsBadLanguage(details?.short_description ?? ""))
-        ) {
-          continue;
-        }
-
-        if (
-          hideThirdPersonShooter &&
-          (containsThirdPersonShooter(details?.name ?? match.title) ||
-            containsThirdPersonShooter(details?.short_description ?? ""))
-        ) {
-          continue;
-        }
-
-        if (
-          hideWargame &&
-          (containsWargameTerm(details?.name ?? match.title) ||
-            containsWargameTerm(details?.short_description ?? ""))
-        ) {
-          continue;
-        }
-
-        const detailPlatforms: PlatformKey[] = [];
-
-        if (details?.platforms?.windows) {
-          detailPlatforms.push("windows");
-        }
-
-        if (details?.platforms?.mac) {
-          detailPlatforms.push("macos");
-        }
-
-        if (details?.platforms?.linux) {
-          detailPlatforms.push("linux");
-        }
-
-        acceptedGames.push({
-          id: match.appId,
-          name: details?.name ?? match.title,
-          imageUrl: details?.header_image ?? details?.capsule_image ?? match.capsuleImage,
-          shortDescription: details?.short_description ?? "",
-          platforms: detailPlatforms.length > 0 ? detailPlatforms : match.platforms,
-          price: details?.is_free ? "Free" : details?.price_overview?.final_formatted ?? match.price,
-          originalPrice:
-            details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
-              ? details.price_overview.initial_formatted
-              : undefined,
-          discountPercent:
-            details?.price_overview?.discount_percent && details.price_overview.discount_percent > 0
-              ? details.price_overview.discount_percent
-              : undefined,
-          releaseDate: details?.release_date?.date ?? match.releaseDate,
-          storeUrl: normalizeStoreUrl(match.url, match.appId),
-        });
       }
     }
 
