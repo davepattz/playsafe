@@ -350,6 +350,13 @@ export const educationGames = [
     priceLabel: "See Steam",
     platforms: ["windows", "macos", "linux"],
   },
+  {
+    appId: 3840230,
+    name: "Adorable Adventures",
+    releaseDate: "See Steam",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
 ];
 
 export const legoGames = [
