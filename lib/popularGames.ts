@@ -357,6 +357,13 @@ export const educationGames = [
     priceLabel: "See Steam",
     platforms: ["windows"],
   },
+  {
+    appId: 2537590,
+    name: "Microsoft Flight Simulator 2024",
+    releaseDate: "Nov 19, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
 ];
 
 export const legoGames = [
