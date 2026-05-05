@@ -4,6 +4,7 @@ export type FeaturedOption =
   | "popular"
   | "new-releases"
   | "shared-split-screen-coop"
+  | "education"
   | "racing"
   | "lego";
 
@@ -19,6 +20,7 @@ const featuredOptions: Array<{
   { label: "Popular", value: "popular" },
   { label: "New releases", value: "new-releases" },
   { label: "Split screen", value: "shared-split-screen-coop" },
+  { label: "Education", value: "education" },
   { label: "Racing", value: "racing" },
   { label: "Lego", value: "lego" },
 ];

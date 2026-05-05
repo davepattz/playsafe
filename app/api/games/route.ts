@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { legoGames, popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
+import {
+  educationGames,
+  legoGames,
+  popularGames,
+  racingGames,
+  sharedSplitScreenCoopGames,
+} from "@/lib/popularGames";
 import {
   createSteamResultsCacheKey,
   readSteamResultsCache,
@@ -34,6 +40,7 @@ type FeaturedKey =
   | "popular"
   | "new-releases"
   | "shared-split-screen-coop"
+  | "education"
   | "racing"
   | "lego"
   | "all";
@@ -41,6 +48,7 @@ type PopularGameSource =
   (
     typeof popularGames |
     typeof sharedSplitScreenCoopGames |
+    typeof educationGames |
     typeof racingGames |
     typeof legoGames
   )[number];
@@ -169,6 +177,7 @@ function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
     featured === "all" ||
     featured === "new-releases" ||
     featured === "shared-split-screen-coop" ||
+    featured === "education" ||
     featured === "racing" ||
     featured === "lego"
   ) {
@@ -894,6 +903,7 @@ export async function GET(request: Request) {
     const isCuratedFeaturedRequest =
       (selectedFeatured === "popular" ||
         selectedFeatured === "shared-split-screen-coop" ||
+        selectedFeatured === "education" ||
         selectedFeatured === "racing" ||
         selectedFeatured === "lego") &&
       searchQuery.length === 0;
@@ -911,6 +921,8 @@ export async function GET(request: Request) {
     const curatedGamesSource = isCuratedFeaturedRequest
       ? selectedFeatured === "shared-split-screen-coop"
         ? sharedSplitScreenCoopGames
+        : selectedFeatured === "education"
+          ? educationGames
         : selectedFeatured === "racing"
           ? racingGames
           : selectedFeatured === "lego"

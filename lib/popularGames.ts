@@ -279,6 +279,79 @@ export const racingGames = [
   },
 ];
 
+export const educationGames = [
+  {
+    appId: 230290,
+    name: "Universe Sandbox",
+    releaseDate: "Aug 24, 2015",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos", "linux"],
+  },
+  {
+    appId: 621060,
+    name: "PC Building Simulator",
+    releaseDate: "Jan 29, 2019",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 218680,
+    name: "Scribblenauts Unlimited",
+    releaseDate: "Nov 19, 2012",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 1190000,
+    name: "Car Mechanic Simulator 2021",
+    releaseDate: "Aug 11, 2021",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2185060,
+    name: "Two Point Museum",
+    releaseDate: "Mar 4, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos", "linux"],
+  },
+  {
+    appId: 883360,
+    name: "Beyond Blue",
+    releaseDate: "Jun 11, 2020",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos"],
+  },
+  {
+    appId: 2265310,
+    name: "Bug & Seek",
+    releaseDate: "Dec 6, 2023",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 3531490,
+    name: "Treeplanter",
+    releaseDate: "Apr 21, 2025",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
+    appId: 2300320,
+    name: "Farming Simulator 25",
+    releaseDate: "Nov 12, 2024",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos"],
+  },
+  {
+    appId: 1062160,
+    name: "Poly Bridge 2",
+    releaseDate: "May 28, 2020",
+    priceLabel: "See Steam",
+    platforms: ["windows", "macos", "linux"],
+  },
+];
+
 export const legoGames = [
   {
     appId: 32440,
