@@ -37,7 +37,7 @@ export default function Featured({
             Featured:
           </span>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-start">
             {featuredOptions.map((option) => {
               const isSelected = selectedFeatured === option.value;
 
@@ -47,7 +47,7 @@ export default function Featured({
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => setSelectedFeatured(option.value)}
-                  className={`font-['Lato'] text-[18px] font-bold underline-offset-4 ${
+                  className={`text-center font-['Lato'] text-[18px] font-bold underline-offset-4 ${
                     isSelected
                       ? "text-black underline decoration-2"
                       : "text-black/60 hover:text-black"
