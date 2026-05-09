@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 
 interface FiltersProps {
@@ -19,6 +20,8 @@ export default function Filters({
   selectedFilters,
   setSelectedFilters,
 }: FiltersProps) {
+  const [areFilterDetailsVisible, setAreFilterDetailsVisible] = useState(true);
+
   const handleSelect = (
     e: React.ChangeEvent<HTMLSelectElement>,
     current: string[],
@@ -63,28 +66,32 @@ export default function Filters({
               ))}
             </select>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {selectedFilters.map(filter => (
-              <div key={filter} className="bg-[#b185e8] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
-                <span className="text-black text-[14px] font-bold font-['Lato']">{filter}</span>
-                <button 
-                  type="button" 
-                  onClick={() => removeTag(filter, setSelectedFilters)} 
-                  className="text-black font-bold hover:opacity-70 leading-none"
-                >
-                  ✕
-                </button>
+          {areFilterDetailsVisible && (
+            <>
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
+                {selectedFilters.map(filter => (
+                  <div key={filter} className="bg-[#b185e8] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
+                    <span className="text-black text-[14px] font-bold font-['Lato']">{filter}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(filter, setSelectedFilters)}
+                      className="text-black font-bold hover:opacity-70 leading-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          {selectedFilters.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedFilters([])}
-              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
-            >
-              Clear
-            </button>
+              {selectedFilters.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedFilters([])}
+                  className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+                >
+                  Clear
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -107,28 +114,32 @@ export default function Filters({
               ))}
             </select>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {selectedGameTypes.map(type => (
-              <div key={type} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
-                <span className="text-black text-[14px] font-bold font-['Lato']">{type}</span>
-                <button 
-                  type="button" 
-                  onClick={() => removeTag(type, setSelectedGameTypes)} 
-                  className="text-black font-bold hover:opacity-70 leading-none"
-                >
-                  ✕
-                </button>
+          {areFilterDetailsVisible && (
+            <>
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
+                {selectedGameTypes.map(type => (
+                  <div key={type} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
+                    <span className="text-black text-[14px] font-bold font-['Lato']">{type}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(type, setSelectedGameTypes)}
+                      className="text-black font-bold hover:opacity-70 leading-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          {selectedGameTypes.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedGameTypes([])}
-              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
-            >
-              Clear
-            </button>
+              {selectedGameTypes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedGameTypes([])}
+                  className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+                >
+                  Clear
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -153,34 +164,38 @@ export default function Filters({
           </div>
           
           {/* Selected items tags */}
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {selectedPlayStyles.map(style => (
-              <div key={style} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
-                <span className="text-black text-[14px] font-bold font-['Lato']">{style}</span>
-                <button 
-                  type="button" 
-                  onClick={() => removeTag(style, setSelectedPlayStyles)} 
-                  className="text-black font-bold hover:opacity-70 leading-none"
-                >
-                  ✕
-                </button>
+          {areFilterDetailsVisible && (
+            <>
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
+                {selectedPlayStyles.map(style => (
+                  <div key={style} className="bg-[#d7f379] border border-black p-[5px] px-3 rounded-full flex items-center gap-2">
+                    <span className="text-black text-[14px] font-bold font-['Lato']">{style}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(style, setSelectedPlayStyles)}
+                      className="text-black font-bold hover:opacity-70 leading-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          {selectedPlayStyles.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedPlayStyles([])}
-              className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
-            >
-              Clear
-            </button>
+              {selectedPlayStyles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlayStyles([])}
+                  className="mt-4 text-black text-[14px] font-bold font-['Lato'] hover:opacity-70"
+                >
+                  Clear
+                </button>
+              )}
+            </>
           )}
         </div>
         </div>
 
         {/* Global Clear All */}
-        {(selectedFilters.length > 0 || selectedGameTypes.length > 0 || selectedPlayStyles.length > 0) && (
+        {areFilterDetailsVisible && (selectedFilters.length > 0 || selectedGameTypes.length > 0 || selectedPlayStyles.length > 0) && (
           <div className="flex justify-center mt-4">
             <button
               type="button"
@@ -195,6 +210,19 @@ export default function Filters({
             </button>
           </div>
         )}
+        <div className="mt-5 flex justify-center px-4">
+          <button
+            type="button"
+            aria-expanded={areFilterDetailsVisible}
+            aria-label={areFilterDetailsVisible ? "Hide filters" : "Show filters"}
+            onClick={() => setAreFilterDetailsVisible((isVisible) => !isVisible)}
+            className={`font-['Lato'] text-[34px] font-bold leading-none text-black hover:opacity-70 ${
+              areFilterDetailsVisible ? "" : "rotate-180"
+            }`}
+          >
+            ⌃
+          </button>
+        </div>
       </div>
 
     </div>

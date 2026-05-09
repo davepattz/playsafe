@@ -288,9 +288,11 @@ export default function Results({
                     {game.price}
                   </div>
                   {game.originalPrice && game.discountPercent ? (
-                    <div className="mt-2 font-['Lato'] text-[14px] font-bold leading-none text-black/70">
-                      <span className="line-through">{game.originalPrice}</span>
-                      <span className="ml-2">-{game.discountPercent}%</span>
+                    <div className="mt-2 flex items-center justify-end gap-2 font-['Lato'] text-[14px] font-bold leading-none">
+                      <span className="text-black/70 line-through">{game.originalPrice}</span>
+                      <span className="rounded-full border border-black bg-[#d7f379] px-3 py-[5px] text-black">
+                        -{game.discountPercent}%
+                      </span>
                     </div>
                   ) : null}
                 </div>

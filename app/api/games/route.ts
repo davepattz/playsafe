@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
-import { popularGames, racingGames, sharedSplitScreenCoopGames } from "@/lib/popularGames";
+import {
+  educationGames,
+  legoGames,
+  popularGames,
+  racingGames,
+  sharedSplitScreenCoopGames,
+} from "@/lib/popularGames";
 import {
   createSteamResultsCacheKey,
   readSteamResultsCache,
@@ -23,16 +29,65 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 7;
+const FILTER_BEHAVIOR_VERSION = 9;
+const ALCOHOL_FILTER = "Alcohol";
+const ALCOHOL_TEXT_TERMS = [
+  "alcohol",
+  "alcoholic",
+  "ale",
+  "bar crawl",
+  "bartender",
+  "beer",
+  "booze",
+  "brewery",
+  "brewing",
+  "cocktail",
+  "drunk",
+  "drunken",
+  "gin",
+  "hangover",
+  "liquor",
+  "mead",
+  "pub",
+  "rum",
+  "saloon",
+  "tavern",
+  "vodka",
+  "whiskey",
+  "whisky",
+  "wine",
+];
 const THIRD_PERSON_SHOOTER_FILTER = "Third-Person Shooter";
 const THIRD_PERSON_SHOOTER_TEXT = "third person shooter";
 const WARGAME_FILTER = "Wargame";
 const WARGAME_TEXT_TERMS = ["wargame", "war", "warfare"];
+const ROMANCE_FILTER = "Romance";
+const ROMANCE_TEXT_TERMS = [
+  "date",
+  "dating",
+  "romance",
+  "romantic",
+  "love interest",
+  "relationship",
+];
 
 type PlatformKey = (typeof ALL_PLATFORMS)[number];
-type FeaturedKey = "popular" | "new-releases" | "shared-split-screen-coop" | "racing" | "all";
+type FeaturedKey =
+  | "popular"
+  | "new-releases"
+  | "shared-split-screen-coop"
+  | "education"
+  | "racing"
+  | "lego"
+  | "all";
 type PopularGameSource =
-  (typeof popularGames | typeof sharedSplitScreenCoopGames | typeof racingGames)[number];
+  (
+    typeof popularGames |
+    typeof sharedSplitScreenCoopGames |
+    typeof educationGames |
+    typeof racingGames |
+    typeof legoGames
+  )[number];
 
 const SUPPORTED_STEAM_COUNTRIES = new Set([
   "AR", "AU", "AT", "BE", "BR", "BG", "CA", "CL", "CN", "CO", "CR", "HR",
@@ -158,7 +213,9 @@ function getSelectedFeatured(searchParams: URLSearchParams): FeaturedKey {
     featured === "all" ||
     featured === "new-releases" ||
     featured === "shared-split-screen-coop" ||
-    featured === "racing"
+    featured === "education" ||
+    featured === "racing" ||
+    featured === "lego"
   ) {
     return featured;
   }
@@ -668,6 +725,14 @@ function containsWargameTerm(value: string) {
   return containsAnyTextTerm(value, WARGAME_TEXT_TERMS);
 }
 
+function containsAlcoholTerm(value: string) {
+  return containsAnyTextTerm(value, ALCOHOL_TEXT_TERMS);
+}
+
+function containsRomanceTerm(value: string) {
+  return containsAnyTextTerm(value, ROMANCE_TEXT_TERMS);
+}
+
 function needsHoverTagCheck(hiddenLabels: string[]) {
   return hiddenLabels.some((label) => label === BAD_LANGUAGE_FILTER || label === "Horror");
 }
@@ -732,10 +797,12 @@ async function fetchPopularGames(
   popularGamesSource: PopularGameSource[],
 ) {
   const acceptedGames: SteamGame[] = [];
+  const hideAlcohol = applyFilters && filters.hidden.includes(ALCOHOL_FILTER);
   const hideBadLanguage = applyFilters && filters.hidden.includes(BAD_LANGUAGE_FILTER);
   const hideThirdPersonShooter =
     applyFilters && filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
   const hideWargame = applyFilters && filters.hidden.includes(WARGAME_FILTER);
+  const hideRomance = applyFilters && filters.hidden.includes(ROMANCE_FILTER);
   const shouldFetchHoverTags =
     applyFilters && (filters.gameTypes.length > 0 || filters.hidden.length > 0);
   const detailsByAppId = await fetchAppDetailsBatch(
@@ -793,6 +860,14 @@ async function fetchPopularGames(
     }
 
     if (
+      hideAlcohol &&
+      (containsAlcoholTerm(details?.name ?? popularGame.name) ||
+        containsAlcoholTerm(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
+    if (
       hideBadLanguage &&
       (containsBadLanguage(details?.name ?? popularGame.name) ||
         containsBadLanguage(details?.short_description ?? ""))
@@ -812,6 +887,14 @@ async function fetchPopularGames(
       hideWargame &&
       (containsWargameTerm(details?.name ?? popularGame.name) ||
         containsWargameTerm(details?.short_description ?? ""))
+    ) {
+      continue;
+    }
+
+    if (
+      hideRomance &&
+      (containsRomanceTerm(details?.name ?? popularGame.name) ||
+        containsRomanceTerm(details?.short_description ?? ""))
     ) {
       continue;
     }
@@ -882,7 +965,9 @@ export async function GET(request: Request) {
     const isCuratedFeaturedRequest =
       (selectedFeatured === "popular" ||
         selectedFeatured === "shared-split-screen-coop" ||
-        selectedFeatured === "racing") &&
+        selectedFeatured === "education" ||
+        selectedFeatured === "racing" ||
+        selectedFeatured === "lego") &&
       searchQuery.length === 0;
     const hasActiveFilters =
       filters.gameTypes.length > 0 ||
@@ -898,9 +983,13 @@ export async function GET(request: Request) {
     const curatedGamesSource = isCuratedFeaturedRequest
       ? selectedFeatured === "shared-split-screen-coop"
         ? sharedSplitScreenCoopGames
+        : selectedFeatured === "education"
+          ? educationGames
         : selectedFeatured === "racing"
           ? racingGames
-        : await getPopularGamesSource()
+          : selectedFeatured === "lego"
+            ? legoGames
+            : await getPopularGamesSource()
       : [];
     const cacheKey = createSteamResultsCacheKey({
       filterBehaviorVersion: FILTER_BEHAVIOR_VERSION,
@@ -981,9 +1070,11 @@ export async function GET(request: Request) {
         }
       }
 
+      const hideAlcohol = filters.hidden.includes(ALCOHOL_FILTER);
       const hideBadLanguage = filters.hidden.includes(BAD_LANGUAGE_FILTER);
       const hideThirdPersonShooter = filters.hidden.includes(THIRD_PERSON_SHOOTER_FILTER);
       const hideWargame = filters.hidden.includes(WARGAME_FILTER);
+      const hideRomance = filters.hidden.includes(ROMANCE_FILTER);
       const shouldFetchHoverTags = needsHoverTagCheck(filters.hidden);
 
       for (let matchIndex = 0; matchIndex < matches.length; matchIndex += APP_DETAILS_CHUNK_SIZE) {
@@ -1032,6 +1123,14 @@ export async function GET(request: Request) {
           }
 
           if (
+            hideAlcohol &&
+            (containsAlcoholTerm(details?.name ?? match.title) ||
+              containsAlcoholTerm(details?.short_description ?? ""))
+          ) {
+            continue;
+          }
+
+          if (
             hideBadLanguage &&
             (containsBadLanguage(details?.name ?? match.title) ||
               containsBadLanguage(details?.short_description ?? ""))
@@ -1051,6 +1150,14 @@ export async function GET(request: Request) {
             hideWargame &&
             (containsWargameTerm(details?.name ?? match.title) ||
               containsWargameTerm(details?.short_description ?? ""))
+          ) {
+            continue;
+          }
+
+          if (
+            hideRomance &&
+            (containsRomanceTerm(details?.name ?? match.title) ||
+              containsRomanceTerm(details?.short_description ?? ""))
           ) {
             continue;
           }
