@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Header() {
   return (
     <header className="bg-white w-full">
@@ -6,35 +8,35 @@ export default function Header() {
 
           {/* Logo */}
           <div className="order-1 md:order-none md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-            <a href="/" aria-label="PlaySafe home">
+            <Link href="/" aria-label="PlaySafe home">
               <img
                 src="/logo.svg"
                 alt="PlaySafe"
                 className="h-[28px] w-auto"
               />
-            </a>
+            </Link>
           </div>
 
           {/* Left nav */}
           <nav className="order-2 md:order-none flex space-x-14 mt-4 md:mt-0">
-            <a
+            <Link
               href="/"
               className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
             >
               Games
-            </a>
-            <a
+            </Link>
+            <Link
               href="/news"
               className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
             >
               News
-            </a>
-            <a
+            </Link>
+            <Link
               href="/faq"
               className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
             >
               FAQ
-            </a>
+            </Link>
           </nav>
 
           {/* Right heart icon */}
