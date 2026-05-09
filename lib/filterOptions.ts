@@ -45,6 +45,7 @@ export const gameTypeOptions = [
 ];
 
 export const filterOptions = [
+  "Alcohol",
   "Bad Language",
   "Combat",
   "Dark Fantasy",
