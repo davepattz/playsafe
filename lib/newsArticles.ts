@@ -1,5 +1,6 @@
 export interface NewsArticle {
   slug: string;
+  disqusIdentifier: string;
   title: string;
   publishedAt: string;
   imageUrl: string;
@@ -13,8 +14,9 @@ export interface NewsArticle {
 
 export const newsArticles: NewsArticle[] = [
   {
-    slug: "top-10-games-for-kids-under-5",
-    title: "Top 10 Games for Kids Under 5",
+    slug: "top-10-video-games-for-kids-under-5-on-steam",
+    disqusIdentifier: "news-top-10-games-for-kids-under-5",
+    title: "Top 10 Video Games for Kids Under 5 on Steam",
     publishedAt: "2026-05-09",
     imageUrl: "/banners/lilgator.png",
     imageAlt: "Lil Gator Game artwork",
@@ -23,22 +25,57 @@ export const newsArticles: NewsArticle[] = [
     sections: [
       {
         body:
-          "Choosing games for under-fives is less about chasing a perfect age rating and more about finding experiences that are calm, readable, and easy to stop and start. This placeholder article gives the news section a real shape while the final recommendations are being written.",
+          "Choosing games for under-fives is less about chasing a perfect age rating and more about finding experiences that are calm, readable, and easy to stop and start.",
       },
       {
-        heading: "What Makes a Good First Game",
+        heading: "1. Wobbly Life",
         body:
-          "Look for simple inputs, low pressure, short play sessions, clear visual feedback, and little or no reading requirement. Games that let an adult guide the session, share a controller, or sit nearby and narrate what is happening tend to work best.",
+          "A bright, silly open-world sandbox with simple activities, playful physics, and lots of gentle exploring.",
       },
       {
-        heading: "Draft Picks to Review",
+        heading: "2. Lil Gator Game",
         body:
-          "Lil Gator Game, LEGO games, simple co-op cooking games, cozy exploration games, and creative sandbox titles are useful starting points. Before recommending anything, each game should be checked for text complexity, failure states, adverts, online features, and any themes that might surprise parents.",
+          "A warm adventure about exploring, helping friends, and pretending to be a hero without heavy pressure.",
       },
       {
-        heading: "Parent Check",
+        heading: "3. Bluey: The Videogame",
         body:
-          "Even a child-friendly game can vary by platform, mode, or online setting. The safest approach is to play the first session together, keep purchases and chat locked down, and use PlaySafe filters as a starting point rather than the only review step.",
+          "A familiar, family-focused game built around the world of Bluey, with approachable co-op play.",
+      },
+      {
+        heading: "4. Little Kitty, Big City",
+        body:
+          "A cheerful exploration game about wandering through a city as a curious cat and discovering small adventures.",
+      },
+      {
+        heading: "5. Portal Knights",
+        body:
+          "A colorful building and adventure game with simple fantasy exploration and room for grown-ups to help.",
+      },
+      {
+        heading: "6. Ben 10",
+        body:
+          "A straightforward character adventure based on the Ben 10 universe, with recognizable heroes and action.",
+      },
+      {
+        heading: "7. PowerWash Simulator 2",
+        body:
+          "A satisfying cleaning game with clear goals, low-pressure play, and plenty of easy-to-understand progress.",
+      },
+      {
+        heading: "8. Sonic Frontiers",
+        body:
+          "A fast, colorful Sonic adventure with open areas to explore and lots of movement-focused play.",
+      },
+      {
+        heading: "9. NINJA KIDZ: TIME MASTERS",
+        body:
+          "A kid-facing action game with simple arcade energy and a theme younger players may find exciting.",
+      },
+      {
+        heading: "10. Disneyland Adventures",
+        body:
+          "A friendly theme park adventure that lets children explore Disney-inspired spaces and activities.",
       },
     ],
   },

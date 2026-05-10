@@ -102,7 +102,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
               </div>
             </div>
 
-            <DisqusComments identifier={`news-${article.slug}`} title={article.title} />
+            <DisqusComments identifier={article.disqusIdentifier} title={article.title} />
           </article>
 
           <Sidebar />

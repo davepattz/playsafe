@@ -64,7 +64,7 @@ export default function NewsPage() {
                     </p>
                     <Link
                       href={`/news/${article.slug}#disqus_thread`}
-                      data-disqus-identifier={`news-${article.slug}`}
+                      data-disqus-identifier={article.disqusIdentifier}
                       className="font-['Lato'] text-[14px] font-bold uppercase text-black hover:text-[#b185e8]"
                     >
                       Comments
