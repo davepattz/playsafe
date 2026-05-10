@@ -29,7 +29,7 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 9;
+const FILTER_BEHAVIOR_VERSION = 10;
 const ALCOHOL_FILTER = "Alcohol";
 const ALCOHOL_TEXT_TERMS = [
   "alcohol",
@@ -1107,7 +1107,9 @@ export async function GET(request: Request) {
             break;
           }
 
-          const details = detailsByAppId.get(match.appId);
+          const details =
+            detailsByAppId.get(match.appId) ??
+            (await fetchAppDetails(match.appId, countryCode, true));
           const hoverTags = hoverTagsByAppId.get(match.appId) ?? [];
 
           if (details?.type && details.type !== "game") {
