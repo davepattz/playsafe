@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import Footer from "@/components/Footer";
+import DisqusComments from "@/components/DisqusComments";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -100,6 +101,8 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                 </div>
               </div>
             </div>
+
+            <DisqusComments identifier={`news-${article.slug}`} title={article.title} />
           </article>
 
           <Sidebar />
