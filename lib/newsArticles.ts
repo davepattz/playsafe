@@ -18,8 +18,8 @@ export const newsArticles: NewsArticle[] = [
     disqusIdentifier: "news-top-10-games-for-kids-under-5",
     title: "Top 10 Video Games for Kids Under 5 on Steam",
     publishedAt: "2026-05-09",
-    imageUrl: "/banners/lilgator.png",
-    imageAlt: "Lil Gator Game artwork",
+    imageUrl: "/news/top-10-video-games-for-kids-under-5-on-steam.jpg",
+    imageAlt: "Top 10 Video Games for Kids Under 5 on Steam",
     openingSentence:
       "A gentle starter list for younger players, focused on simple controls, friendly themes, and games that are easy for grown-ups to join.",
     sections: [
