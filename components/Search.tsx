@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface SearchProps {
   selectedPlatforms: string[];
   setSelectedPlatforms: React.Dispatch<React.SetStateAction<string[]>>;
@@ -17,6 +19,17 @@ export default function Search({
   selectedSort,
   setSelectedSort
 }: SearchProps) {
+  const [draftSearchQuery, setDraftSearchQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setDraftSearchQuery(searchQuery);
+  }, [searchQuery]);
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSearchQuery(draftSearchQuery.trim());
+  };
+
   const togglePlatform = (platform: string) => {
     setSelectedPlatforms(prev =>
       prev.includes(platform)
@@ -29,17 +42,21 @@ export default function Search({
     <div className="mt-4 w-full pb-4">
       <div className="max-w-[1222px] mx-auto px-0">
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="relative mx-auto w-full max-w-[441px] h-[50px] sm:mx-0 sm:w-[441px]" style={{ width: 441, height: 50 }}>
+          <form
+            onSubmit={submitSearch}
+            className="relative mx-auto w-full max-w-[441px] h-[50px] sm:mx-0 sm:w-[441px]"
+            style={{ width: 441, height: 50 }}
+          >
             <input
               type="text"
               placeholder="Search games..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={draftSearchQuery}
+              onChange={(e) => setDraftSearchQuery(e.target.value)}
               className="w-full h-full bg-white border-2 border-black rounded-full px-4 pr-12 outline-none placeholder-black"
               style={{ fontFamily: 'Lato, Arial, sans-serif', fontSize: 19, fontWeight: 400 }}
             />
             <button
-              type="button"
+              type="submit"
               aria-label="Search"
               className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#d7f379] border-2 border-black rounded-full flex items-center justify-center"
             >
@@ -48,7 +65,7 @@ export default function Search({
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
-          </div>
+          </form>
 
           <div className="flex flex-col items-center gap-2 w-full sm:w-auto sm:flex-row sm:items-center">
             <span className="text-[18px] font-normal font-['Lato']">Platform:</span>

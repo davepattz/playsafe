@@ -33,6 +33,10 @@ export default function Home() {
     setApplyPopularFilters(true);
     setSelectedFilters(value);
   };
+  const updateSelectedFeatured = (featured: FeaturedOption) => {
+    setSearchQuery("");
+    setSelectedFeatured(featured);
+  };
 
   return (
     <main className="min-h-screen bg-white">
@@ -58,7 +62,7 @@ export default function Home() {
         />
         <Featured
           selectedFeatured={selectedFeatured}
-          setSelectedFeatured={setSelectedFeatured}
+          setSelectedFeatured={updateSelectedFeatured}
         />
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">

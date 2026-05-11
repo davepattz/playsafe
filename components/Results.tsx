@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 import { type FeaturedOption } from "@/components/Featured";
 
-const SEARCH_DEBOUNCE_MS = 400;
 const FIRST_PAGE_RETRY_DELAY_MS = 1200;
 
 type PlatformKey = "windows" | "macos" | "linux";
@@ -56,17 +55,6 @@ export default function Results({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [queryVersion, setQueryVersion] = useState(0);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [searchQuery]);
 
   useEffect(() => {
     setGames([]);
@@ -75,7 +63,7 @@ export default function Results({
     setError(null);
     setQueryVersion((value) => value + 1);
   }, [
-    debouncedSearchQuery,
+    searchQuery,
     selectedFilters,
     selectedGameTypes,
     selectedPlatforms,
@@ -117,7 +105,7 @@ export default function Results({
       }
     }
 
-    params.set("query", debouncedSearchQuery);
+    params.set("query", searchQuery);
     params.set("sort", selectedSort);
     params.set("featured", selectedFeatured);
     params.set("limit", "30");
@@ -207,7 +195,7 @@ export default function Results({
   }, [
     page,
     queryVersion,
-    debouncedSearchQuery,
+    searchQuery,
     selectedFilters,
     selectedGameTypes,
     selectedPlatforms,
