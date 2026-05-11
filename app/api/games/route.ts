@@ -29,7 +29,7 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 11;
+const FILTER_BEHAVIOR_VERSION = 12;
 const ALCOHOL_FILTER = "Alcohol";
 const ALCOHOL_TEXT_TERMS = [
   "alcohol",

@@ -54,6 +54,7 @@ export const filterOptions = [
   "Dating Sim",
   "Difficult",
   "Drama",
+  "Emotional",
   "Fighting",
   "Gore",
   "Hack and Slash",

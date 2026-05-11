@@ -28,6 +28,7 @@ export const TAG_MAP: Record<string, number | number[]> = {
   Drama: 5984,
   Driving: 1644,
   Education: 1036,
+  Emotional: 5608,
   "Farming Sim": 87918,
   Fighting: 1743,
   Funny: 4136,
