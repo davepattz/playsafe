@@ -21,6 +21,12 @@ const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
 const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
 const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
 const STEAM_COUNTRY_CODE = "US";
+const STEAM_REQUEST_HEADERS = {
+  Accept: "application/json",
+  "Accept-Language": "en-US,en;q=0.9",
+  "User-Agent":
+    "Mozilla/5.0 (compatible; PlaySafe.games/1.0; +https://playsafe.games)",
+};
 const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
 const APP_DETAILS_CHUNK_SIZE = 20;
@@ -29,7 +35,7 @@ const FILTERED_MAX_BATCHES = 12;
 const SEARCH_QUERY_MAX_BATCHES = 6;
 const ALL_PLATFORMS = ["windows", "macos", "linux"] as const;
 const POPULAR_GAMES_SOURCE_CACHE_KEY = "popular-games:v1";
-const FILTER_BEHAVIOR_VERSION = 12;
+const FILTER_BEHAVIOR_VERSION = 15;
 const ALCOHOL_FILTER = "Alcohol";
 const ALCOHOL_TEXT_TERMS = [
   "alcohol",
@@ -531,9 +537,7 @@ async function fetchSearchBatch(start: number, searchQuery: string, countryCode:
   });
 
   const response = await fetch(`${STEAM_SEARCH_URL}?${params.toString()}`, {
-    headers: {
-      Accept: "application/json",
-    },
+    headers: STEAM_REQUEST_HEADERS,
     next: { revalidate: 3600 },
   });
 
@@ -555,12 +559,17 @@ async function fetchAppDetails(appId: number, countryCode: string, bypassCache =
     l: "english",
   });
 
-  const response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
-    headers: {
-      Accept: "application/json",
-    },
-    ...(bypassCache ? { cache: "no-store" as const } : { next: { revalidate: 3600 } }),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
+      headers: STEAM_REQUEST_HEADERS,
+      ...(bypassCache ? { cache: "no-store" as const } : { next: { revalidate: 3600 } }),
+    });
+  } catch (error) {
+    console.warn(`Steam appdetails failed for ${appId}`, error);
+    return null;
+  }
 
   if (!response.ok) {
     return null;
@@ -571,6 +580,10 @@ async function fetchAppDetails(appId: number, countryCode: string, bypassCache =
   try {
     payload = (await response.json()) as SteamAppDetailsResponse;
   } catch {
+    return null;
+  }
+
+  if (!payload || typeof payload !== "object") {
     return null;
   }
 
@@ -590,12 +603,17 @@ async function fetchAppDetailsBatch(appIds: number[], countryCode: string) {
     l: "english",
   });
 
-  const response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
-    headers: {
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
+      headers: STEAM_REQUEST_HEADERS,
+      cache: "no-store",
+    });
+  } catch (error) {
+    console.warn("Steam appdetails batch failed", error);
+    return new Map<number, SteamAppDetailsSuccess["data"]>();
+  }
 
   if (!response.ok) {
     return new Map<number, SteamAppDetailsSuccess["data"]>();
@@ -606,6 +624,10 @@ async function fetchAppDetailsBatch(appIds: number[], countryCode: string) {
   try {
     payload = (await response.json()) as SteamAppDetailsResponse;
   } catch {
+    return new Map<number, SteamAppDetailsSuccess["data"]>();
+  }
+
+  if (!payload || typeof payload !== "object") {
     return new Map<number, SteamAppDetailsSuccess["data"]>();
   }
 
@@ -627,9 +649,16 @@ async function fetchHoverTags(appId: number) {
     l: "english",
   });
 
-  const response = await fetch(`${STEAM_APP_HOVER_URL}/${appId}?${params.toString()}`, {
-    next: { revalidate: 3600 },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${STEAM_APP_HOVER_URL}/${appId}?${params.toString()}`, {
+      next: { revalidate: 3600 },
+    });
+  } catch (error) {
+    console.warn(`Steam hover tags failed for ${appId}`, error);
+    return [];
+  }
 
   if (!response.ok) {
     return [];
@@ -742,6 +771,15 @@ function hasPriceAndReleaseDate(details: SteamAppDetailsSuccess["data"] | undefi
     details &&
       (details.is_free || details.price_overview?.final_formatted) &&
       details.release_date?.date,
+  );
+}
+
+function hasDegradedCuratedSteamData(games: SteamGame[]) {
+  return games.some(
+    (game) =>
+      game.price === "See Steam" ||
+      game.releaseDate === "See Steam" ||
+      game.shortDescription.trim().length === 0,
   );
 }
 
@@ -1221,7 +1259,9 @@ export async function GET(request: Request) {
       games,
     };
 
-    await writeSteamResultsCache(cacheKey, payload);
+    if (!isCuratedFeaturedRequest || !hasDegradedCuratedSteamData(games)) {
+      await writeSteamResultsCache(cacheKey, payload);
+    }
 
     return NextResponse.json(payload, {
       headers: {
