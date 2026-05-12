@@ -5,6 +5,14 @@ import { useEffect, useState } from "react";
 import { type FeaturedOption } from "@/components/Featured";
 
 const FIRST_PAGE_RETRY_DELAY_MS = 1200;
+const CURATED_FEATURED_OPTIONS: FeaturedOption[] = [
+  "popular",
+  "shared-split-screen-coop",
+  "education",
+  "racing",
+  "lego",
+];
+const EMPTY_FILTERS: string[] = [];
 
 type PlatformKey = "windows" | "macos" | "linux";
 
@@ -55,6 +63,9 @@ export default function Results({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [queryVersion, setQueryVersion] = useState(0);
+  const isCuratedFeaturedBrowsing =
+    searchQuery.length === 0 && CURATED_FEATURED_OPTIONS.includes(selectedFeatured);
+  const activeHiddenFilters = isCuratedFeaturedBrowsing ? EMPTY_FILTERS : selectedFilters;
 
   useEffect(() => {
     setGames([]);
@@ -64,7 +75,7 @@ export default function Results({
     setQueryVersion((value) => value + 1);
   }, [
     searchQuery,
-    selectedFilters,
+    activeHiddenFilters,
     selectedGameTypes,
     selectedPlatforms,
     selectedPlayStyles,
@@ -85,7 +96,7 @@ export default function Results({
       params.append("playStyles", playStyle);
     });
 
-    selectedFilters.forEach((filter) => {
+    activeHiddenFilters.forEach((filter) => {
       params.append("hidden", filter);
     });
 
@@ -196,7 +207,7 @@ export default function Results({
     page,
     queryVersion,
     searchQuery,
-    selectedFilters,
+    activeHiddenFilters,
     selectedGameTypes,
     selectedPlatforms,
     selectedPlayStyles,
