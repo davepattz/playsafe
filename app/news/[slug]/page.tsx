@@ -18,6 +18,12 @@ interface NewsArticlePageProps {
   }>;
 }
 
+function getYouTubeEmbedUrl(youtubeUrl: string) {
+  const videoId = new URL(youtubeUrl).searchParams.get("v");
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : youtubeUrl;
+}
+
 export function generateStaticParams() {
   return getAllNewsArticles().map((article) => ({
     slug: article.slug,
@@ -88,6 +94,17 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                 <div className="mt-8 flex flex-col gap-7 border-t-2 border-black pt-8">
                   {article.sections.map((section) => (
                     <section key={`${article.slug}-${section.heading ?? section.body.slice(0, 24)}`}>
+                      {section.youtubeUrl && section.heading && (
+                        <div className="mb-5 overflow-hidden rounded-[14px] border-2 border-black bg-black">
+                          <iframe
+                            src={getYouTubeEmbedUrl(section.youtubeUrl)}
+                            title={`${section.heading} video`}
+                            className="aspect-video w-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
                       {section.heading && (
                         <h2 className="font-['Lato'] text-[26px] font-bold leading-tight text-black">
                           {section.heading}
@@ -96,6 +113,33 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                       <p className="mt-3 font-['Lato'] text-[18px] leading-relaxed text-black/75">
                         {section.body}
                       </p>
+                      {section.playStyles && section.playStyles.length > 0 && (
+                        <div className="mt-4">
+                          <h3 className="font-['Lato'] text-[16px] font-bold uppercase tracking-wide text-black/60">
+                            Play styles
+                          </h3>
+                          <ul className="mt-2 flex flex-wrap gap-2">
+                            {section.playStyles.map((playStyle) => (
+                              <li
+                                key={`${section.heading}-${playStyle}`}
+                                className="rounded-full border border-black bg-[#d7f379] p-[5px] px-3 font-['Lato'] text-[14px] font-bold text-black"
+                              >
+                                {playStyle}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {section.storeUrl && (
+                        <Link
+                          href={section.storeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-flex font-['Lato'] text-[16px] font-bold text-black hover:text-[#b185e8]"
+                        >
+                          View on Steam
+                        </Link>
+                      )}
                     </section>
                   ))}
                 </div>
