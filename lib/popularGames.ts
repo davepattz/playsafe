@@ -459,6 +459,13 @@ export const legoGames = [
     platforms: ["windows"],
   },
   {
+    appId: 2215200,
+    name: "LEGO® Batman™: Legacy of the Dark Knight",
+    releaseDate: "See Steam",
+    priceLabel: "See Steam",
+    platforms: ["windows"],
+  },
+  {
     appId: 405310,
     name: "LEGO MARVEL's Avengers",
     releaseDate: "Jan 27, 2016",
