@@ -40,6 +40,7 @@ export default function SteamInspector() {
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [searchStatus, setSearchStatus] = useState("");
   const [detailStatus, setDetailStatus] = useState("");
+  const [cacheDiagnostic, setCacheDiagnostic] = useState<{ appId: number; detail: string }>();
 
   useEffect(() => {
     if (query.trim().length < 2) return;
@@ -76,9 +77,23 @@ export default function SteamInspector() {
   }, [selected]);
 
   function select(game: SteamSuggestion) {
+    setCacheDiagnostic(undefined);
     setInspection(null);
     setDetailStatus("Loading metadata…");
     setSelected({ ...game });
+  }
+
+  async function inspectCache(game: SteamSuggestion) {
+    setCacheDiagnostic({ appId: game.appId, detail: "Checking cache…" });
+    try {
+      const response = await fetch(`/api/dev/steam?appId=${game.appId}&cache=true`);
+      if (!response.ok) throw new Error("Cache diagnostics unavailable.");
+      const detail = JSON.stringify(await response.json(), null, 2);
+      setCacheDiagnostic((current) => current?.appId === game.appId ? { appId: game.appId, detail } : current);
+    } catch {
+      setCacheDiagnostic((current) => current?.appId === game.appId
+        ? { appId: game.appId, detail: "Cache diagnostics unavailable." } : current);
+    }
   }
 
   return (
@@ -104,6 +119,12 @@ export default function SteamInspector() {
       </div>
       {selected && <section className="space-y-3">
         <h2 className="text-xl font-bold">{selected.title} ({selected.appId})</h2>
+        <button className="rounded border px-3 py-2 hover:bg-violet-50" type="button" onClick={() => inspectCache(selected)}>
+          Check metadata cache
+        </button>
+        {cacheDiagnostic?.appId === selected.appId && <pre className="overflow-auto rounded bg-gray-100 p-4 text-sm" aria-live="polite">
+          {cacheDiagnostic.detail}
+        </pre>}
         <p role="status">{detailStatus}</p>
         {inspection && <>
           <AssessmentPanel assessment={inspection.assessment} showJson />

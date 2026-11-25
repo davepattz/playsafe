@@ -97,10 +97,10 @@ export function steamSearchErrorResponse(error: unknown) {
 
 const cache = new Map<string, { expires: number; result: SteamResponse }>();
 
-async function request(url: URL, ttlMs: number, validate: (result: unknown) => boolean): Promise<SteamResponse> {
+async function request(url: URL, ttlMs: number, validate: (result: unknown) => boolean, bypassMemoryCache = false): Promise<SteamResponse> {
   const key = url.href;
   const previous = cache.get(key);
-  if (previous && previous.expires > Date.now()) return { ...previous.result, cached: true };
+  if (!bypassMemoryCache && previous && previous.expires > Date.now()) return { ...previous.result, cached: true };
   const started = performance.now();
   const signal = AbortSignal.timeout(4500);
   try {
@@ -271,7 +271,7 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
   };
 }
 
-export async function inspectSteamGame(appId: number) {
+export async function inspectSteamGame(appId: number, { bypassMemoryCache = false } = {}) {
   if (!Number.isSafeInteger(appId) || appId < 1 || appId > 0xffffffff) {
     throw new RangeError("Invalid Steam app ID");
   }
@@ -282,8 +282,8 @@ export async function inspectSteamGame(appId: number) {
   const ttl = 30 * 60_000;
   const tagsUrl = webUrl("/IStoreService/GetTagList", { language: STEAM_CONTEXT.language });
   const [appdetails, getItems, getTagList] = await Promise.allSettled([
-    request(detailsUrl, ttl, (data) => Boolean(detailsFor(data, appId))),
-    request(browseUrl, ttl, (data) => Boolean(itemFor(data, appId))),
+    request(detailsUrl, ttl, (data) => Boolean(detailsFor(data, appId)), bypassMemoryCache),
+    request(browseUrl, ttl, (data) => Boolean(itemFor(data, appId)), bypassMemoryCache),
     request(tagsUrl, 24 * 60 * 60_000, (data) => localizedTags(data).size > 0),
   ]);
   const detailsRaw = appdetails.status === "fulfilled" ? appdetails.value.data : null;

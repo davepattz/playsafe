@@ -58,8 +58,8 @@ function Classifications({ assessment }: { assessment: SteamAssessment }) {
   </ReportSection>;
 }
 
-export default function GameReport({ game, assessment, incomplete }: {
-  game: SteamGameMetadata & { title: string }; assessment: SteamAssessment; incomplete: boolean;
+export default function GameReport({ game, assessment, incomplete, staleRetrievedAt }: {
+  game: SteamGameMetadata & { title: string }; assessment: SteamAssessment; incomplete: boolean; staleRetrievedAt?: string;
 }) {
   const overview = reportOverview(assessment.categories);
   const positive = positiveSteamTags(game.tags);
@@ -89,6 +89,11 @@ export default function GameReport({ game, assessment, incomplete }: {
           </dl>
         </div>
       </header>
+      {staleRetrievedAt && <p role="status" className="rounded-xl border border-[#ead5ae] bg-[#fff0d8] px-4 py-3 text-sm text-[#694304]">
+        <strong>Outdated Steam information.</strong> The last usable data was retrieved on{" "}
+        <time dateTime={staleRetrievedAt}>{new Intl.DateTimeFormat("en-AU", { dateStyle: "long", timeZone: "Australia/Brisbane" }).format(new Date(staleRetrievedAt))}</time>.
+        Check Steam and the official classification for current information.
+      </p>}
       {incomplete && <p role="status" className="rounded-xl border border-[#e0d3e9] bg-[#f3eaf8] px-4 py-3 text-sm">
         Some Steam sources did not return data. The report uses the evidence available, and missing information remains unknown.
       </p>}
