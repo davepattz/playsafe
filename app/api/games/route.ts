@@ -17,16 +17,11 @@ import {
   writeSteamResultsCache,
 } from "@/lib/steamResultsCache";
 
-const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
-const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
-const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
+import { STEAM_APP_DETAILS_URL, STEAM_REQUEST_HEADERS, STEAM_STORE } from "@/lib/steamStore";
+
+const STEAM_SEARCH_URL = STEAM_STORE + "/search/results/";
+const STEAM_APP_HOVER_URL = STEAM_STORE + "/apphoverpublic";
 const STEAM_COUNTRY_CODE = "US";
-const STEAM_REQUEST_HEADERS = {
-  Accept: "application/json",
-  "Accept-Language": "en-US,en;q=0.9",
-  "User-Agent":
-    "Mozilla/5.0 (compatible; PlaySafe.games/1.0; +https://playsafe.games)",
-};
 const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
 const APP_DETAILS_CHUNK_SIZE = 20;
