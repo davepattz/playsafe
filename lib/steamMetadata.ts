@@ -1,6 +1,7 @@
 import "server-only";
 
 import { STEAM_APP_DETAILS_URL, STEAM_REQUEST_HEADERS, STEAM_STORE } from "./steamStore";
+import { GAME_SEARCH_MIN_LENGTH, normalizeGameQuery, rankGameTitles } from "./gameSearch";
 
 export const STEAM_CONTEXT = { country_code: "AU", language: "english" } as const;
 const WEB_API = "https://api.steampowered.com";
@@ -10,7 +11,8 @@ type Feature = { id: number; name: string };
 type Tag = { id: number; name: string | null; weight: number | null };
 type Rating = { authority: string; rating: string; descriptors: string | null };
 type Evidence = { id: number | null; name: string };
-export type SteamSuggestion = { appId: number; title: string };
+const STORE_GAME_TYPE = 0;
+export type SteamSuggestion = { appId: number; title: string; capsuleImage?: string; releaseYear?: number; platforms?: string[] };
 export type SteamGameMetadata = {
   appId: number;
   title: string | null;
@@ -74,6 +76,16 @@ export class SteamRequestError extends Error {
 }
 
 type SteamResponse = { data: unknown; status: number; elapsedMs: number; cached: boolean };
+export function steamSearchErrorResponse(error: unknown) {
+  const timeout = error instanceof SteamRequestError && error.reason === "timeout";
+  return Response.json({
+    error: timeout ? "Steam search timed out. Try again." : "Steam search is unavailable. Try again.",
+  }, {
+    status: timeout ? 504 : 502,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
 const cache = new Map<string, { expires: number; result: SteamResponse }>();
 
 async function request(url: URL, ttlMs: number, validate: (result: unknown) => boolean): Promise<SteamResponse> {
@@ -116,8 +128,8 @@ function webUrl(method: string, payload: JsonObject) {
 }
 
 export async function searchSteamGames(query: string): Promise<SteamSuggestion[]> {
-  const term = query.trim().replace(/\s+/g, " ").slice(0, 100);
-  if (term.length < 2) return [];
+  const term = normalizeGameQuery(query);
+  if (term.length < GAME_SEARCH_MIN_LENGTH) return [];
   const result = await request(storeUrl("/api/storesearch/", { term }), 60_000, (data) => Array.isArray(object(data)?.items));
   const items = object(result.data)?.items;
   if (!Array.isArray(items)) throw new SteamRequestError("invalid");
@@ -127,16 +139,54 @@ export async function searchSteamGames(query: string): Promise<SteamSuggestion[]
     const appId = number(row?.id);
     const title = string(row?.name);
     if (row?.type !== "app" || appId === null || !Number.isSafeInteger(appId) || appId <= 0 || !title) continue;
-    unique.set(appId, { appId, title });
-    if (unique.size === 8) break;
+    const capsuleImage = string(row.tiny_image);
+    const platformFlags = object(row.platforms);
+    const platforms = [["windows", "Windows"], ["mac", "macOS"], ["linux", "Linux"]]
+      .filter(([name]) => platformFlags?.[name] === true).map(([, label]) => label);
+    unique.set(appId, {
+      appId, title, platforms,
+      capsuleImage: capsuleImage && /^https:\/\/(?:[\w.-]+\.)?steamstatic\.com\//i.test(capsuleImage) ? capsuleImage : undefined,
+    });
+    if (unique.size === 16) break;
   }
-  return [...unique.values()];
+  if (!unique.size) return [];
+  const verified = await request(browseItemsUrl([...unique.keys()], { include_release: true }), 5 * 60_000,
+    (data) => Boolean(browseItems(data)));
+  const candidates = browseItems(verified.data);
+  if (!candidates) throw new SteamRequestError("invalid");
+  const games = new Map(candidates.filter(isStoreGame).map((item) => [number(item.appid), item]));
+  const playable = [...unique.values()].flatMap((suggestion) => {
+    const item = games.get(suggestion.appId);
+    if (!item) return [];
+    const timestamp = number(object(item.release)?.steam_release_date);
+    const year = timestamp && timestamp > 0 ? new Date(timestamp * 1000).getUTCFullYear() : null;
+    return [{ ...suggestion, releaseYear: year && Number.isFinite(year) ? year : undefined }];
+  });
+  return rankGameTitles(playable, term).slice(0, 8);
+}
+
+function browseItemsUrl(appIds: number[], dataRequest: JsonObject) {
+  return webUrl("/IStoreBrowseService/GetItems", {
+    ids: appIds.map((appid) => ({ appid })),
+    context: STEAM_CONTEXT,
+    data_request: dataRequest,
+  });
+}
+
+function browseItems(data: unknown) {
+  const items = object(object(data)?.response)?.store_items;
+  return Array.isArray(items) ? items.flatMap((item) => {
+    const row = object(item);
+    return row ? [row] : [];
+  }) : undefined;
+}
+
+function isStoreGame(item: JsonObject) {
+  return item.success === 1 && item.item_type === 0 && item.type === STORE_GAME_TYPE && item.visible !== false;
 }
 
 function itemFor(data: unknown, appId: number) {
-  const items = object(object(data)?.response)?.store_items;
-  if (!Array.isArray(items)) return undefined;
-  return items.map(object).find((entry) => number(entry?.appid) === appId && (entry?.success === undefined || entry.success === 1));
+  return browseItems(data)?.find((entry) => number(entry.appid) === appId && (entry.success === undefined || entry.success === 1));
 }
 
 function detailsFor(data: unknown, appId: number) {
@@ -188,7 +238,7 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
   return {
     appId,
     title: string(details?.name) ?? string(item?.name),
-    appType: string(details?.type),
+    appType: string(details?.type) ?? (item && isStoreGame(item) ? "game" : null),
     headerImage: string(details?.header_image),
     capsuleImage: string(details?.capsule_image),
     shortDescription: string(details?.short_description) ?? string(object(item?.basic_info)?.short_description),
@@ -217,10 +267,8 @@ export async function inspectSteamGame(appId: number) {
     throw new RangeError("Invalid Steam app ID");
   }
   const detailsUrl = storeUrl(STEAM_APP_DETAILS_URL, { appids: String(appId) });
-  const browseUrl = webUrl("/IStoreBrowseService/GetItems", {
-    ids: [{ appid: appId }],
-    context: STEAM_CONTEXT,
-    data_request: { include_assets: true, include_basic_info: true, include_tag_count: 20, include_release: true, include_game_rating: true },
+  const browseUrl = browseItemsUrl([appId], {
+    include_assets: true, include_basic_info: true, include_tag_count: 20, include_release: true, include_game_rating: true,
   });
   const ttl = 30 * 60_000;
   const tagsUrl = webUrl("/IStoreService/GetTagList", { language: STEAM_CONTEXT.language });

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { SteamGameMetadata, SteamSuggestion } from "@/lib/steamMetadata";
 import type { SteamAssessment } from "@/lib/assessmentEngine";
-import AssessmentPanel from "./AssessmentPanel";
+import AssessmentPanel from "@/components/AssessmentPanel";
 
 const examples: SteamSuggestion[] = [
   { appId: 1211020, title: "Wobbly Life" },
@@ -106,7 +106,7 @@ export default function SteamInspector() {
         <h2 className="text-xl font-bold">{selected.title} ({selected.appId})</h2>
         <p role="status">{detailStatus}</p>
         {inspection && <>
-          <AssessmentPanel assessment={inspection.assessment} />
+          <AssessmentPanel assessment={inspection.assessment} showJson />
           <details className="rounded border p-3">
             <summary className="cursor-pointer">Normalized Steam metadata</summary>
             <pre className="mt-2 max-h-96 overflow-auto bg-gray-100 p-3 text-sm">{JSON.stringify(inspection.metadata, null, 2)}</pre>

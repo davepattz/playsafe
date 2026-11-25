@@ -16,7 +16,7 @@ const coverage = {
   no_matching_evidence: "No matching evidence",
 };
 
-export default function AssessmentPanel({ assessment }: { assessment: SteamAssessment }) {
+export default function AssessmentPanel({ assessment, showJson = false }: { assessment: SteamAssessment; showJson?: boolean }) {
   return (
     <section aria-label="Suitability assessment" className="space-y-4 rounded border bg-violet-50 p-4">
       <h3 className="text-xl font-bold">Suitability assessment</h3>
@@ -61,10 +61,10 @@ export default function AssessmentPanel({ assessment }: { assessment: SteamAsses
           </details>
         ))}
       </div>
-      <details className="rounded border bg-white p-3">
+      {showJson && <details className="rounded border bg-white p-3">
         <summary className="cursor-pointer">Assessment JSON and data coverage</summary>
         <pre className="mt-2 max-h-96 overflow-auto bg-gray-100 p-3 text-sm">{JSON.stringify(assessment, null, 2)}</pre>
-      </details>
+      </details>}
     </section>
   );
 }
