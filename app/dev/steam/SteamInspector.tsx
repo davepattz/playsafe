@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { SteamGameMetadata, SteamSuggestion } from "@/lib/steamMetadata";
+import type { SteamAssessment } from "@/lib/assessmentEngine";
+import AssessmentPanel from "./AssessmentPanel";
 
 const examples: SteamSuggestion[] = [
   { appId: 1211020, title: "Wobbly Life" },
@@ -10,10 +12,17 @@ const examples: SteamSuggestion[] = [
   { appId: 4000, title: "Garry's Mod" },
   { appId: 730, title: "Counter-Strike 2" },
   { appId: 1091500, title: "Cyberpunk 2077" },
+  { appId: 413150, title: "Stardew Valley" },
+  { appId: 105600, title: "Terraria" },
+  { appId: 264710, title: "Subnautica" },
+  { appId: 250900, title: "The Binding of Isaac: Rebirth" },
+  { appId: 2379780, title: "Balatro" },
+  { appId: 220200, title: "Kerbal Space Program" },
 ];
 
 type Inspection = {
   metadata: SteamGameMetadata;
+  assessment: SteamAssessment;
   sources: Record<string, { available: boolean; error?: string; data?: unknown; elapsedMs?: number; cached?: boolean }>;
 };
 
@@ -97,7 +106,11 @@ export default function SteamInspector() {
         <h2 className="text-xl font-bold">{selected.title} ({selected.appId})</h2>
         <p role="status">{detailStatus}</p>
         {inspection && <>
-          <pre className="overflow-auto rounded bg-gray-100 p-4 text-sm">{JSON.stringify(inspection.metadata, null, 2)}</pre>
+          <AssessmentPanel assessment={inspection.assessment} />
+          <details className="rounded border p-3">
+            <summary className="cursor-pointer">Normalized Steam metadata</summary>
+            <pre className="mt-2 max-h-96 overflow-auto bg-gray-100 p-3 text-sm">{JSON.stringify(inspection.metadata, null, 2)}</pre>
+          </details>
           {Object.entries(inspection.sources).map(([name, source]) => <details key={name} className="rounded border p-3">
             <summary className="cursor-pointer">{name} raw JSON · {source.available ? "available" : "unavailable"}
               {source.elapsedMs !== undefined && ` · ${source.elapsedMs} ms${source.cached ? " (cached response)" : ""}`}</summary>
