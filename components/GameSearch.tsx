@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent } from "react";
 import {
   GAME_SEARCH_DEBOUNCE_MS, GAME_SEARCH_MAX_LENGTH, GAME_SEARCH_MIN_LENGTH,
@@ -28,6 +28,7 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
   const [result, setResult] = useState<Result>();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [reportPending, startReportNavigation] = useTransition();
   const query = normalizeGameQuery(search.value);
   const valid = query.length >= GAME_SEARCH_MIN_LENGTH;
   const current = result?.revision === search.revision ? result : undefined;
@@ -78,7 +79,7 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
   function choose(game: SteamSuggestion) {
     setOpen(false);
     setActive(-1);
-    router.push(gameReportPath(game.appId, game.title));
+    startReportNavigation(() => router.push(gameReportPath(game.appId, game.title)));
   }
 
   function submitSearch() {
@@ -160,6 +161,9 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
           </div>
         )}
       </form>
+      {reportPending && <p role="status" className="mt-3 rounded-xl border border-[#e0d3e9] bg-white px-4 py-3 text-sm font-bold text-[#563569]">
+        Loading game report…
+      </p>}
       {popularSearches.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
           <p className="mx-1 font-bold text-[#514960]">Popular searches</p>

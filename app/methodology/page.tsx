@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import SearchSiteLayout from "@/components/SearchSiteLayout";
+import { ReportSection } from "@/components/report/ReportSections";
+
+export const metadata: Metadata = {
+  title: "Assessment methodology | PlaySafe.games",
+  description: "How PlaySafe.games uses Steam listings, classifications and disclosed content to prepare game suitability reports.",
+};
+
+export default function Methodology() {
+  return <SearchSiteLayout>
+    <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 space-y-5 px-4 py-10 sm:px-8">
+      <Link href="/" className="font-bold text-[#563569] underline">Back to game search</Link>
+      <h1 className="text-4xl font-bold tracking-tight">Assessment methodology</h1>
+      <p className="leading-relaxed text-[#514960]">PlaySafe helps parents see what Steam says about a game before deciding what is right for their child.</p>
+      <ReportSection id="sources" title="What we use">
+        <p className="leading-relaxed">The report uses the Australian English Steam listing, including official classifications reported by Steam, Steam-generated ratings, developer disclosures, listed features, content descriptors and community tags.</p>
+      </ReportSection>
+      <ReportSection id="rules" title="How findings are generated">
+        <p className="leading-relaxed">Versioned rules identify potential or significant concerns using the available evidence. Classification advice and developer disclosures carry more weight than community tags. Tags alone cannot establish a significant concern. A documented game-specific review is shown with its reason and source.</p>
+      </ReportSection>
+      <ReportSection id="limits" title="What the report can tell you">
+        <p className="leading-relaxed">Insufficient information means the available sources could not establish a finding. Positive gameplay features can coexist with serious concerns. Reports are informational and cannot establish suitability for a child, current moderation, the contents of modifications, or coverage across editions and regions.</p>
+        <p className="mt-3 leading-relaxed">Use the report alongside the official classification and what you know about your child and how they would play.</p>
+      </ReportSection>
+    </main>
+  </SearchSiteLayout>;
+}

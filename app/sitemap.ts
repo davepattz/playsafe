@@ -17,6 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
     },
     {
+      url: `${SITE_URL}/methodology`,
+      changeFrequency: "monthly",
+    },
+    {
       url: `${SITE_URL}/news`,
       lastModified: new Date(),
       changeFrequency: "weekly",

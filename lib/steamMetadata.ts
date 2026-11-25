@@ -22,6 +22,8 @@ export type SteamGameMetadata = {
   shortDescription: string | null;
   tags: Tag[] | null;
   genres: Feature[] | null;
+  platforms: string[] | null;
+  downloadableContent: true | null;
   categories: Feature[] | null;
   classifications: Rating[] | null;
   australianClassification: Rating | null;
@@ -44,6 +46,13 @@ function object(value: unknown): JsonObject | undefined {
 
 function string(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function steamPlatforms(value: unknown) {
+  const flags = object(value);
+  const platforms = [["windows", "Windows"], ["mac", "macOS"], ["linux", "Linux"]]
+    .filter(([name]) => flags?.[name] === true).map(([, label]) => label);
+  return platforms.length ? platforms : null;
 }
 
 function number(value: unknown) {
@@ -140,9 +149,7 @@ export async function searchSteamGames(query: string): Promise<SteamSuggestion[]
     const title = string(row?.name);
     if (row?.type !== "app" || appId === null || !Number.isSafeInteger(appId) || appId <= 0 || !title) continue;
     const capsuleImage = string(row.tiny_image);
-    const platformFlags = object(row.platforms);
-    const platforms = [["windows", "Windows"], ["mac", "macOS"], ["linux", "Linux"]]
-      .filter(([name]) => platformFlags?.[name] === true).map(([, label]) => label);
+    const platforms = steamPlatforms(row.platforms) ?? undefined;
     unique.set(appId, {
       appId, title, platforms,
       capsuleImage: capsuleImage && /^https:\/\/(?:[\w.-]+\.)?steamstatic\.com\//i.test(capsuleImage) ? capsuleImage : undefined,
@@ -247,6 +254,8 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
       return id === null ? null : { id, name: string(tag.name) ?? names.get(id) ?? null, weight: number(tag.weight) };
     }),
     genres: features(details?.genres),
+    platforms: steamPlatforms(details?.platforms),
+    downloadableContent: Array.isArray(details?.dlc) && details.dlc.some((id) => Number.isInteger(id)) ? true : null,
     categories,
     classifications: ratings,
     australianClassification: ratings?.find(({ authority }) => /^(acb|oflc)$/i.test(authority)) ?? null,
