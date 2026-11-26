@@ -94,8 +94,8 @@ The [Phase 7C production record](PRODUCTION-DEPLOYMENT.md) supersedes the separa
 - [x] Identify the existing Netlify production project and verify its immutable V1 deploy serves.
 - [x] Verify restored access to the PlaySafe Supabase project, archive the database and rehearse the application-schema restore and V2 migration on isolated PostgreSQL.
 - [x] Verify application-critical recovery and rehearse the shared-project migration, isolated role permissions and reversal.
-- [ ] Verify the dedicated shared role through the production Supavisor endpoint and confirm production-only Netlify settings.
-- [ ] Apply the compatible V2 migration and verify production configuration before merging and publishing the release candidate.
+- [x] Verify the dedicated shared role through production Supavisor with the official CA and confirm production-only Netlify settings.
+- [x] Apply both additive V2 migrations, publish the release candidate, and verify live search, persistent reports, request counters, SEO and legacy URLs.
 
 - [x] Run the sample, document gaps and record rule provenance and version.
 - [x] Review public API inputs, server-side keys, output handling and route guards.
