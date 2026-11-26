@@ -1,0 +1,31 @@
+\set ON_ERROR_STOP on
+\timing on
+begin;
+
+create temporary table steam_catalogue_import (
+  app_id bigint primary key check (app_id between 1 and 4294967295),
+  title text not null check (length(btrim(title)) between 1 and 300)
+) on commit drop;
+
+\copy steam_catalogue_import (app_id, title) from 'steam-catalogue.csv' with (format csv, header match, encoding 'UTF8')
+
+do $$
+begin
+  if not exists (select from steam_catalogue_import) then
+    raise exception 'Steam catalogue export is empty';
+  end if;
+end;
+$$;
+
+insert into public.v2_game_catalogue (app_id, region, language, title, source, observed_at)
+select app_id, '*', '*', title, 'steam_app_list', now() from steam_catalogue_import
+on conflict (app_id, region, language) do update
+set title = excluded.title, observed_at = excluded.observed_at
+where public.v2_game_catalogue.observed_at <= excluded.observed_at;
+
+commit;
+
+select count(*) as global_catalogue_rows,
+  pg_total_relation_size('public.v2_game_catalogue') as total_bytes,
+  pg_indexes_size('public.v2_game_catalogue') as index_bytes
+from public.v2_game_catalogue where region = '*' and language = '*';

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface SearchProps {
   selectedPlatforms: string[];
@@ -21,9 +22,11 @@ export default function Search({
 }: SearchProps) {
   const [draftSearchQuery, setDraftSearchQuery] = useState(searchQuery);
 
-  useEffect(() => {
+  const [previousQuery, setPreviousQuery] = useState(searchQuery);
+  if (searchQuery !== previousQuery) {
+    setPreviousQuery(searchQuery);
     setDraftSearchQuery(searchQuery);
-  }, [searchQuery]);
+  }
 
   const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,15 +75,15 @@ export default function Search({
 
             <div className="flex items-center gap-2 mt-1 sm:mt-0">
               <button type="button" aria-label="Filter Windows" title="Windows" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('windows')}>
-                <img src={selectedPlatforms.includes('windows') ? '/win_logo_selected.svg' : '/win_logo.svg'} alt="Windows" className="w-[22px] h-auto" />
+                <Image src={selectedPlatforms.includes('windows') ? '/win_logo_selected.svg' : '/win_logo.svg'} width={22} height={22} alt="Windows" className="w-[22px] h-auto" />
               </button>
 
               <button type="button" aria-label="Filter macOS" title="MacOS" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('macos')}>
-                <img src={selectedPlatforms.includes('macos') ? '/apple_logo_selected.svg' : '/apple_logo.svg'} alt="macOS" className="w-[22px] h-auto" />
+                <Image src={selectedPlatforms.includes('macos') ? '/apple_logo_selected.svg' : '/apple_logo.svg'} width={22} height={22} alt="macOS" className="w-[22px] h-auto" />
               </button>
 
               <button type="button" aria-label="Filter Linux" title="SteamOS/Linux" className="w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer" onClick={() => togglePlatform('linux')}>
-                <img src={selectedPlatforms.includes('linux') ? '/steam_logo_selected.svg' : '/steam_logo.svg'} alt="Linux" className="w-[22px] h-auto" />
+                <Image src={selectedPlatforms.includes('linux') ? '/steam_logo_selected.svg' : '/steam_logo.svg'} width={22} height={22} alt="Linux" className="w-[22px] h-auto" />
               </button>
             </div>
           </div>

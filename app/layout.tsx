@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lato } from "next/font/google";
-import Script from "next/script";
+import Analytics from "@/components/Analytics";
+import { isStagingBuild } from "@/lib/staging";
+import { SITE_URL } from "@/lib/siteUrl";
 import "./globals.css";
 
 const lato = Lato({
@@ -20,8 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Search for safe, child friendly video games on Steam - PlaySafe.games",
-  description: "Search for safe, child friendly video games on Steam with PlaySafe.games filters.",
+  metadataBase: new URL(SITE_URL),
+  title: "PlaySafe.games | Steam parents guides",
+  description: "Check available age classifications, content concerns and online features before your child plays a Steam game.",
 };
 
 export default function RootLayout({
@@ -31,21 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-QXFD5D8991"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-QXFD5D8991');
-        `}
-      </Script>
       <body
         className={`${lato.variable} ${geistSans.variable} ${geistMono.variable} antialiased bg-white min-h-screen`}
       >
+        {!isStagingBuild() && process.env.NODE_ENV === "production" && <Analytics />}
         {children}
       </body>
     </html>

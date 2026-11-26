@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/unsupported-syntax */
-
 import { useEffect } from "react";
 
 declare global {

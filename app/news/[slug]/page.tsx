@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import Footer from "@/components/Footer";
 import DisqusComments from "@/components/DisqusComments";
+import { isStagingBuild } from "@/lib/staging";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -43,6 +44,7 @@ export async function generateMetadata({ params }: NewsArticlePageProps) {
   return {
     title: `${article.title} - PlaySafe.games`,
     description: article.openingSentence,
+    alternates: { canonical: `/news/${article.slug}` },
   };
 }
 
@@ -146,7 +148,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
               </div>
             </div>
 
-            <DisqusComments identifier={article.disqusIdentifier} title={article.title} />
+            {!isStagingBuild() && <DisqusComments identifier={article.disqusIdentifier} title={article.title} />}
           </article>
 
           <Sidebar />

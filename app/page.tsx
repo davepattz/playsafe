@@ -1,89 +1,38 @@
-"use client";
+import type { Metadata } from "next";
+import Image from "next/image";
+import GameSearch from "@/components/GameSearch";
+import SearchSiteLayout from "@/components/SearchSiteLayout";
+import { popularSearches } from "@/lib/popularSearches";
+import { SITE_URL } from "@/lib/siteUrl";
 
-import { useState } from "react";
-import Header from "@/components/Header"
-import Title from "@/components/Title"
-import Filters from "@/components/Filters"
-import Featured, { type FeaturedOption } from "@/components/Featured"
-import Search from "@/components/Search"
-import Results from "@/components/Results"
-import Sidebar from "@/components/Sidebar"
-import Footer from "@/components/Footer"
-import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
+export const metadata: Metadata = {
+  title: "PlaySafe.games | Know before they play",
+  description: "Find out what's inside a game before your child plays it.",
+  alternates: { canonical: "/" },
+  openGraph: { title: "PlaySafe.games | Know before they play", description: "Explore Steam game reports for parents and carers.",
+    url: "/", type: "website", images: [{ url: "/social-card.png", width: 1200, height: 630, alt: "PlaySafe.games" }] },
+  twitter: { card: "summary_large_image", images: ["/social-card.png"] },
+};
 
 export default function Home() {
-  // Lifting state up so Results can eventually use these for API calls
-  const [selectedPlayStyles, setSelectedPlayStyles] = useState<string[]>(playStyleOptions);
-  const [selectedGameTypes, setSelectedGameTypes] = useState<string[]>(gameTypeOptions);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(filterOptions);
-  const [applyPopularFilters, setApplyPopularFilters] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Newest to oldest");
-  const [selectedFeatured, setSelectedFeatured] = useState<FeaturedOption>("popular");
-  const updateSelectedPlayStyles: typeof setSelectedPlayStyles = (value) => {
-    setApplyPopularFilters(true);
-    setSelectedPlayStyles(value);
-  };
-  const updateSelectedGameTypes: typeof setSelectedGameTypes = (value) => {
-    setApplyPopularFilters(true);
-    setSelectedGameTypes(value);
-  };
-  const updateSelectedFilters: typeof setSelectedFilters = (value) => {
-    setApplyPopularFilters(true);
-    setSelectedFilters(value);
-  };
-  const updateSelectedFeatured = (featured: FeaturedOption) => {
-    setSearchQuery("");
-    setSelectedFeatured(featured);
-  };
-
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
-
-      <section className="max-w-[1222px] mx-auto px-0">
-        <Title />
-        <Filters 
-          selectedPlayStyles={selectedPlayStyles}
-          setSelectedPlayStyles={updateSelectedPlayStyles}
-          selectedGameTypes={selectedGameTypes}
-          setSelectedGameTypes={updateSelectedGameTypes}
-          selectedFilters={selectedFilters}
-          setSelectedFilters={updateSelectedFilters}
-        />
-        <Search 
-          selectedPlatforms={selectedPlatforms}
-          setSelectedPlatforms={setSelectedPlatforms}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedSort={selectedSort}
-          setSelectedSort={setSelectedSort}
-        />
-        <Featured
-          selectedFeatured={selectedFeatured}
-          setSelectedFeatured={updateSelectedFeatured}
-        />
-
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
-            <Results
-              selectedGameTypes={selectedGameTypes}
-              selectedPlayStyles={selectedPlayStyles}
-              selectedFilters={selectedFilters}
-              selectedPlatforms={selectedPlatforms}
-              applyPopularFilters={applyPopularFilters}
-              searchQuery={searchQuery}
-              selectedSort={selectedSort}
-              selectedFeatured={selectedFeatured}
-            />
-          </div>
-
-          <Sidebar />
+    <SearchSiteLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org", "@type": "WebSite", name: "PlaySafe.games", url: SITE_URL,
+      }).replace(/</g, "\\u003c") }} />
+      <main id="main-content" className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 pb-24 pt-16 sm:px-8 sm:pt-[clamp(6rem,16vh,12rem)]">
+        <div className="mb-9 text-center">
+          <Image src="/logo.svg" alt="PlaySafe.games" width={468} height={76} preload
+            className="mx-auto mb-7 h-auto w-56 sm:mb-9 sm:w-72" />
+          <h1 className="text-[clamp(2.5rem,7vw,4.75rem)] font-bold leading-[1.05] tracking-[-0.055em]">
+            Know before they play.
+          </h1>
+          <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-[#514960] sm:text-xl">
+            Find out what&apos;s inside a game before your child plays it.
+          </p>
         </div>
-      </section>
-
-      <Footer />
-    </main>
-  )
+        <GameSearch popularSearches={popularSearches} />
+      </main>
+    </SearchSiteLayout>
+  );
 }

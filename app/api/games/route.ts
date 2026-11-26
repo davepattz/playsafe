@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
-import { gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
+import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
+import { normalizeGameQuery, parseSteamAppId } from "@/lib/gameSearch";
+import { allowV2Request } from "@/lib/v2RateLimit";
+import { isCrawler } from "@/lib/reportSeo";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 import {
   educationGames,
@@ -17,16 +20,11 @@ import {
   writeSteamResultsCache,
 } from "@/lib/steamResultsCache";
 
-const STEAM_SEARCH_URL = "https://store.steampowered.com/search/results/";
-const STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails";
-const STEAM_APP_HOVER_URL = "https://store.steampowered.com/apphoverpublic";
+import { STEAM_APP_DETAILS_URL, STEAM_REQUEST_HEADERS, STEAM_STORE } from "@/lib/steamStore";
+
+const STEAM_SEARCH_URL = STEAM_STORE + "/search/results/";
+const STEAM_APP_HOVER_URL = STEAM_STORE + "/apphoverpublic";
 const STEAM_COUNTRY_CODE = "US";
-const STEAM_REQUEST_HEADERS = {
-  Accept: "application/json",
-  "Accept-Language": "en-US,en;q=0.9",
-  "User-Agent":
-    "Mozilla/5.0 (compatible; PlaySafe.games/1.0; +https://playsafe.games)",
-};
 const DEFAULT_LIMIT = 30;
 const SEARCH_BATCH_SIZE = 50;
 const APP_DETAILS_CHUNK_SIZE = 20;
@@ -112,7 +110,6 @@ interface SteamSearchItem {
   price: string;
   platforms: PlatformKey[];
   tagIds: number[];
-  url: string;
 }
 
 interface SteamGame {
@@ -333,21 +330,6 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function normalizeStoreUrl(url: string, appId: number) {
-  try {
-    const parsedUrl = new URL(url);
-
-    parsedUrl.protocol = "https:";
-    parsedUrl.hostname = "store.steampowered.com";
-    parsedUrl.search = "";
-    parsedUrl.hash = "";
-
-    return parsedUrl.toString();
-  } catch {
-    return `https://store.steampowered.com/app/${appId}/`;
-  }
-}
-
 function decodeSteamText(value: string) {
   return stripHtml(value.replace(/\\\//g, "/").replace(/\\"/g, '"'));
 }
@@ -386,26 +368,26 @@ function parseSearchResults(resultsHtml: string): SteamSearchItem[] {
   const rowPattern = /<a href="([^"]+)"[\s\S]*?data-ds-appid="(\d+)"([\s\S]*?)<\/a>/g;
 
   for (const match of resultsHtml.matchAll(rowPattern)) {
-    const [, url, appIdRaw, rowBody] = match;
+    const [, , appIdRaw, rowBody] = match;
+    const appId = parseSteamAppId(appIdRaw);
     const titleMatch = rowBody.match(/<span class="title">([\s\S]*?)<\/span>/);
     const imageMatch = rowBody.match(/<img src="([^"]+)"/);
     const releaseMatch = rowBody.match(/<div class="search_released responsive_secondrow">\s*([\s\S]*?)\s*<\/div>/);
     const priceMatch = rowBody.match(/<div class="discount_final_price[^"]*">([\s\S]*?)<\/div>/);
     const tagIdsMatch = rowBody.match(/data-ds-tagids="\[([^\]]*)\]"/);
 
-    if (!titleMatch || !imageMatch || !releaseMatch) {
+    if (!appId || !titleMatch || !imageMatch || !releaseMatch) {
       continue;
     }
 
     items.push({
-      appId: Number.parseInt(appIdRaw, 10),
+      appId,
       title: decodeSteamText(titleMatch[1]),
       capsuleImage: decodeSteamText(imageMatch[1]),
       releaseDate: stripHtml(releaseMatch[1]),
       price: priceMatch ? stripHtml(priceMatch[1]) : "Unavailable",
       platforms: parsePlatforms(rowBody),
       tagIds: parseTagIds(tagIdsMatch?.[1]),
-      url: decodeSteamText(url),
     });
   }
 
@@ -537,6 +519,7 @@ async function fetchSearchBatch(start: number, searchQuery: string, countryCode:
   });
 
   const response = await fetch(`${STEAM_SEARCH_URL}?${params.toString()}`, {
+    redirect: "error", signal: AbortSignal.timeout(4500),
     headers: STEAM_REQUEST_HEADERS,
     next: { revalidate: 3600 },
   });
@@ -563,6 +546,7 @@ async function fetchAppDetails(appId: number, countryCode: string, bypassCache =
 
   try {
     response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
+      redirect: "error", signal: AbortSignal.timeout(4500),
       headers: STEAM_REQUEST_HEADERS,
       ...(bypassCache ? { cache: "no-store" as const } : { next: { revalidate: 3600 } }),
     });
@@ -607,6 +591,7 @@ async function fetchAppDetailsBatch(appIds: number[], countryCode: string) {
 
   try {
     response = await fetch(`${STEAM_APP_DETAILS_URL}?${params.toString()}`, {
+      redirect: "error", signal: AbortSignal.timeout(4500),
       headers: STEAM_REQUEST_HEADERS,
       cache: "no-store",
     });
@@ -653,6 +638,7 @@ async function fetchHoverTags(appId: number) {
 
   try {
     response = await fetch(`${STEAM_APP_HOVER_URL}/${appId}?${params.toString()}`, {
+      redirect: "error", signal: AbortSignal.timeout(4500),
       next: { revalidate: 3600 },
     });
   } catch (error) {
@@ -967,13 +953,22 @@ async function fetchPopularGames(
 }
 
 export async function GET(request: Request) {
+  if (isCrawler(request.headers.get("user-agent") ?? "")) return new Response(null, { status: 403 });
   try {
     const { searchParams } = new URL(request.url);
+    if (searchParams.toString().length > 8192) {
+      return NextResponse.json({ error: "Catalogue request is too long.", games: [] }, { status: 400 });
+    }
+    if (!await allowV2Request("search", request.headers)) {
+      return NextResponse.json({ error: "Too many searches. Try again in a moment.", games: [] }, {
+        status: 429, headers: { "Cache-Control": "no-store", "Retry-After": "60" },
+      });
+    }
     const countryCode = getSteamCountryCode(request, searchParams);
     const rawFilters: FilterGroups = {
-      gameTypes: getMultiValue(searchParams, "gameTypes"),
-      playStyles: getMultiValue(searchParams, "playStyles"),
-      hidden: getMultiValue(searchParams, "hidden"),
+      gameTypes: [...new Set(getMultiValue(searchParams, "gameTypes"))].filter((value) => gameTypeOptions.includes(value)),
+      playStyles: [...new Set(getMultiValue(searchParams, "playStyles"))].filter((value) => playStyleOptions.includes(value)),
+      hidden: [...new Set(getMultiValue(searchParams, "hidden"))].filter((value) => filterOptions.includes(value)),
     };
     const filters: FilterGroups = {
       gameTypes:
@@ -985,17 +980,17 @@ export async function GET(request: Request) {
     const selectedPlatforms = getSelectedPlatforms(searchParams);
     const selectedSort = searchParams.get("sort") ?? "Newest to oldest";
     const selectedFeatured = getSelectedFeatured(searchParams);
-    const searchQuery = (searchParams.get("query") ?? "").trim();
+    const searchQuery = normalizeGameQuery(searchParams.get("query") ?? "");
     const applyPopularFilters = searchParams.get("applyPopularFilters") === "true";
-    const refreshCache = searchParams.get("refreshCache") === "true";
-    const limit = Math.min(
+    const refreshCache = process.env.NODE_ENV === "development" && searchParams.get("refreshCache") === "true";
+    const limit = Math.max(1, Math.min(
       Number.parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
       DEFAULT_LIMIT,
-    );
-    const page = Math.max(
+    ));
+    const page = Math.min(FILTERED_MAX_BATCHES * SEARCH_BATCH_SIZE, Math.max(
       Number.parseInt(searchParams.get("page") ?? "1", 10) || 1,
       1,
-    );
+    ));
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const targetAcceptedCount = endIndex + 1;
@@ -1232,7 +1227,7 @@ export async function GET(request: Request) {
                 ? details.price_overview.discount_percent
                 : undefined,
             releaseDate: details?.release_date?.date ?? match.releaseDate,
-            storeUrl: normalizeStoreUrl(match.url, match.appId),
+            storeUrl: `${STEAM_STORE}/app/${match.appId}/`,
           });
         }
       }

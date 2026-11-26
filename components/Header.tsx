@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Header() {
@@ -9,8 +10,8 @@ export default function Header() {
           {/* Logo */}
           <div className="order-1 md:order-none md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
             <Link href="/" aria-label="PlaySafe home">
-              <img
-                src="/logo.svg"
+              <Image
+                src="/logo.svg" width={174} height={28}
                 alt="PlaySafe"
                 className="h-[28px] w-auto"
               />
@@ -47,8 +48,8 @@ export default function Header() {
     rel="noopener noreferrer"
     aria-label="Donate to PlaySafe"
   >
-    <img
-      src="/heart.svg"
+    <Image
+      src="/heart.svg" width={24} height={24}
       alt="Donate"
       className="h-[24px] w-[24px] hover:scale-130 transition-transform"
     />

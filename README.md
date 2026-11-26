@@ -56,8 +56,9 @@ For quick local testing you can use `NEXT_PUBLIC_SUPABASE_URL` and
 security policies that allow the cache reads and writes. A service role key is
 simpler for server-only cache access and must never be exposed to the browser.
 
-Add `refreshCache=true` to an `/api/games` request to bypass a cached result and
-replace it. Responses include `x-playsafe-cache: hit` or `miss` while testing.
+In development, add `refreshCache=true` to an `/api/games` request to bypass a
+cached result and replace it. Responses include `x-playsafe-cache: hit` or
+`miss` while testing.
 In development, the server also logs `Steam results cache: hit`, `miss`,
 `stale`, or `disabled`. After successful cache writes, expired rows are cleaned
 up occasionally based on `STEAM_RESULTS_CACHE_CLEANUP_SAMPLE_RATE`.
