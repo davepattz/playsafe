@@ -1,90 +1,39 @@
-# PlaySafe
+﻿# PlaySafe.games
 
-PlaySafe is a lightweight web app designed to help parents and families discover
-safe, age-appropriate video games.
+[PlaySafe.games](https://playsafe.games/) helps parents and carers check what is known about a Steam game before deciding whether it suits their child. PlaySafe is independent of Valve and Steam.
 
-The project initially supports **Steam** and focuses on:
-- Age ratings
-- Local multiplayer / split-screen support
-- Controller compatibility
+PlaySafe V2 is live. It applies versioned rules to available Australian English Steam metadata to highlight content concerns, online interaction, purchases and gameplay features. Reports show available official classifications separately and mark missing evidence as unknown. PlaySafe reports do not provide official classifications, comprehensive content reviews or guarantees of suitability.
 
-Additional game stores may be added in the future.
+## Local development
 
-## 🚧 Project Status
-Early development (MVP phase).
+Use Node.js 24 and npm. The app uses Next.js App Router, TypeScript and Tailwind CSS.
 
-## 🎯 Goals
-- Make it easy for parents to find family-friendly games
-- Provide clear, trustworthy filters
-- Avoid unnecessary complexity or accounts
-
-## 🧰 Tech Stack
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS
-- Steam Store API
-
-## Supabase Steam Results Cache
-
-The `/api/games` route can optionally cache complete Steam result responses in
-Supabase. If the Supabase env vars are not set, the app keeps using Steam
-directly.
-
-Create a table for testing:
-
-```sql
-create table if not exists steam_results_cache (
-  cache_key text primary key,
-  payload jsonb not null,
-  expires_at timestamptz not null,
-  created_at timestamptz not null default now()
-);
+```sh
+npm ci
+npm run dev
 ```
 
-Set these server-side env vars:
+Open http://localhost:3000. Local development works with live Steam search and on-demand reports without Supabase or a Steam Web API key. Use `/dev/steam` to inspect Steam evidence in development. The original catalogue is available at `/catalogue`.
 
-```bash
-SUPABASE_URL="https://your-project.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-SUPABASE_STEAM_CACHE_TABLE="steam_results_cache"
-STEAM_RESULTS_CACHE_TTL_SECONDS="21600"
-STEAM_RESULTS_CACHE_CLEANUP_SAMPLE_RATE="0.02"
+```sh
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
 
-For quick local testing you can use `NEXT_PUBLIC_SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` instead, but the table needs row-level
-security policies that allow the cache reads and writes. A service role key is
-simpler for server-only cache access and must never be exposed to the browser.
+## Database and hosting
 
-In development, add `refreshCache=true` to an `/api/games` request to bypass a
-cached result and replace it. Responses include `x-playsafe-cache: hit` or
-`miss` while testing.
-In development, the server also logs `Steam results cache: hit`, `miss`,
-`stale`, or `disabled`. After successful cache writes, expired rows are cleaned
-up occasionally based on `STEAM_RESULTS_CACHE_CLEANUP_SAMPLE_RATE`.
+Production runs on Netlify and uses the existing PlaySafe Supabase project. V2 stores game evidence, catalogue titles, report view counts and rate-limit counters in dedicated tables. The shared-production connection uses a restricted database role with no access to the V1 cache. A separate Supabase project can optionally provide persistence for local development. Keep privileged credentials in server-side environment settings and out of Git.
 
-Popular games can also be driven from the same table. Add or update the row with
-`cache_key = 'popular-games:v1'`, a far-future `expires_at`, and this payload
-shape:
+The legacy `/api/games` endpoint retains its optional `steam_results_cache` adapter. The original table, cache settings and curated popular-games entry are described in the [V1 archive](docs/V1-ARCHIVE.md).
 
-```json
-{
-  "games": [
-    {
-      "appId": 1211020,
-      "name": "Wobbly Life",
-      "releaseDate": "Sep 18, 2025",
-      "priceLabel": "See Steam",
-      "platforms": ["windows"]
-    }
-  ]
-}
-```
+- [Production deployment, shared database settings and rollback](docs/PRODUCTION-DEPLOYMENT.md)
+- [Database, caching and search](docs/DATABASE-AND-CACHING.md)
+- [Steam catalogue export and import](docs/HOSTED-INFRASTRUCTURE.md#steam-catalogue-import-and-synchronisation)
+- [Assessment engine](docs/ASSESSMENT-ENGINE.md) and [game validation results](docs/GAME-ASSESSMENT-VALIDATION.md)
+- [SEO, analytics and public information](docs/SEO-AND-LAUNCH.md)
 
-If that row is missing or invalid, the app falls back to `lib/popularGames.ts`.
+## License
 
-## ⚠️ Disclaimer
-PlaySafe is not affiliated with Valve or Steam.
-
-## 📄 License
-TBD
+TBD.
