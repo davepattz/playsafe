@@ -1,7 +1,7 @@
 import "server-only";
 
 import { STEAM_APP_DETAILS_URL, STEAM_REQUEST_HEADERS, STEAM_STORE } from "./steamStore";
-import { GAME_SEARCH_MIN_LENGTH, normalizeGameQuery, rankGameTitles } from "./gameSearch";
+import { GAME_SEARCH_MIN_LENGTH, normalizeGameQuery, rankGameTitles, steamArtworkUrl } from "./gameSearch";
 
 export const STEAM_CONTEXT = { country_code: "AU", language: "english" } as const;
 const WEB_API = "https://api.steampowered.com";
@@ -79,19 +79,27 @@ function features(value: unknown) {
 }
 
 export class SteamRequestError extends Error {
-  constructor(public readonly reason: "timeout" | "network" | "http" | "invalid", public readonly status?: number) {
+  readonly reason: "timeout" | "network" | "http" | "invalid";
+  readonly status?: number;
+
+  constructor(reason: SteamRequestError["reason"], status?: number) {
     super(status ? `Steam returned HTTP ${status}` : `Steam request failed (${reason})`);
+    this.reason = reason;
+    this.status = status;
   }
 }
 
 type SteamResponse = { data: unknown; status: number; elapsedMs: number; cached: boolean };
 export function steamSearchErrorResponse(error: unknown) {
   const timeout = error instanceof SteamRequestError && error.reason === "timeout";
+  const upstreamLimited = error instanceof SteamRequestError && error.status === 429;
   return Response.json({
-    error: timeout ? "Steam search timed out. Try again." : "Steam search is unavailable. Try again.",
+    error: timeout ? "Steam search timed out. Try again."
+      : upstreamLimited ? "Steam is limiting searches. Try again in a moment."
+      : "Steam search is unavailable. Try again.",
   }, {
-    status: timeout ? 504 : 502,
-    headers: { "Cache-Control": "no-store" },
+    status: timeout ? 504 : upstreamLimited ? 503 : 502,
+    headers: { "Cache-Control": "no-store", ...(upstreamLimited ? { "Retry-After": "60" } : {}) },
   });
 }
 
@@ -104,7 +112,7 @@ async function request(url: URL, ttlMs: number, validate: (result: unknown) => b
   const started = performance.now();
   const signal = AbortSignal.timeout(4500);
   try {
-    const response = await fetch(url, { headers: STEAM_REQUEST_HEADERS, signal, cache: "no-store" });
+    const response = await fetch(url, { headers: STEAM_REQUEST_HEADERS, signal, cache: "no-store", redirect: "error" });
     if (!response.ok) throw new SteamRequestError("http", response.status);
     const data: unknown = await response.json();
     const result = { data, status: response.status, elapsedMs: Math.round(performance.now() - started), cached: false };
@@ -147,12 +155,12 @@ export async function searchSteamGames(query: string): Promise<SteamSuggestion[]
     const row = object(item);
     const appId = number(row?.id);
     const title = string(row?.name);
-    if (row?.type !== "app" || appId === null || !Number.isSafeInteger(appId) || appId <= 0 || !title) continue;
+    if (row?.type !== "app" || appId === null || !Number.isSafeInteger(appId) || appId <= 0 || appId > 0xffffffff || !title) continue;
     const capsuleImage = string(row.tiny_image);
     const platforms = steamPlatforms(row.platforms) ?? undefined;
     unique.set(appId, {
       appId, title, platforms,
-      capsuleImage: capsuleImage && /^https:\/\/(?:[\w.-]+\.)?steamstatic\.com\//i.test(capsuleImage) ? capsuleImage : undefined,
+      capsuleImage: steamArtworkUrl(capsuleImage),
     });
     if (unique.size === 16) break;
   }

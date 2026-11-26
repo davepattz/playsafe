@@ -1,3 +1,4 @@
+import Image from "next/image";
 export default function Title() {
   return (
     <div className="mt-12 mb-10 px-4">
@@ -8,7 +9,7 @@ export default function Title() {
         aria-label="View LEGO Batman: Legacy of the Dark Knight on Steam"
         className="mx-auto mb-8 block w-full max-w-[1020px]"
       >
-        <img
+        <Image
           src="/banners/lego_batman_legacy_dark_knight.png"
           alt="LEGO Batman: Legacy of the Dark Knight"
           width={1020}

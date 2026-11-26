@@ -1,5 +1,8 @@
 "use client";
 
+import Image from "next/image";
+import { steamArtworkUrl } from "@/lib/gameSearch";
+import { STEAM_STORE } from "@/lib/steamStore";
 import { useEffect, useState } from "react";
 
 import { type FeaturedOption } from "@/components/Featured";
@@ -46,7 +49,11 @@ interface ResultsProps {
   selectedFeatured: FeaturedOption;
 }
 
-export default function Results({
+export default function Results(props: ResultsProps) {
+  return <CatalogueResults key={JSON.stringify(props)} {...props} />;
+}
+
+function CatalogueResults({
   selectedGameTypes,
   selectedPlayStyles,
   selectedFilters,
@@ -62,26 +69,9 @@ export default function Results({
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [queryVersion, setQueryVersion] = useState(0);
   const isCuratedFeaturedBrowsing =
     searchQuery.length === 0 && CURATED_FEATURED_OPTIONS.includes(selectedFeatured);
   const activeHiddenFilters = isCuratedFeaturedBrowsing ? EMPTY_FILTERS : selectedFilters;
-
-  useEffect(() => {
-    setGames([]);
-    setPage(1);
-    setHasMore(false);
-    setError(null);
-    setQueryVersion((value) => value + 1);
-  }, [
-    searchQuery,
-    activeHiddenFilters,
-    selectedGameTypes,
-    selectedPlatforms,
-    selectedPlayStyles,
-    selectedSort,
-    selectedFeatured,
-  ]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,12 +113,6 @@ export default function Results({
     params.set("page", String(page));
 
     const fetchGames = async () => {
-      if (isFirstPage) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
-
       try {
         const fetchGamesPage = async () => {
           const response = await fetch(`/api/games?${params.toString()}`, {
@@ -205,7 +189,6 @@ export default function Results({
     };
   }, [
     page,
-    queryVersion,
     searchQuery,
     activeHiddenFilters,
     selectedGameTypes,
@@ -218,14 +201,14 @@ export default function Results({
 
   const renderPlatformIcon = (platform: PlatformKey) => {
     if (platform === "windows") {
-      return <img src="/win_logo.svg" alt="Windows" className="w-[26px] h-auto" />;
+      return <Image src="/win_logo.svg" width={26} height={26} alt="Windows" className="w-[26px] h-auto" />;
     }
 
     if (platform === "macos") {
-      return <img src="/apple_logo.svg" alt="macOS" className="w-[26px] h-auto" />;
+      return <Image src="/apple_logo.svg" width={26} height={32} alt="macOS" className="w-[26px] h-auto" />;
     }
 
-    return <img src="/steam_logo.svg" alt="SteamOS/Linux" className="w-[26px] h-auto" />;
+    return <Image src="/steam_logo.svg" alt="SteamOS/Linux" className="w-[26px] h-auto" />;
   };
 
   return (
@@ -251,56 +234,56 @@ export default function Results({
 
         {!isLoading &&
           !error &&
-          games.map((game) => (
-            <a
-              key={game.id}
-              href={game.storeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col md:flex-row border-b-2 border-black last:border-b-0 bg-white hover:bg-[#f8f8f8]"
-            >
-              <div className="w-full md:w-[320px] md:flex-shrink-0 bg-gray-200 overflow-hidden aspect-[460/215]">
-                <img
-                  src={game.imageUrl}
-                  alt={game.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex-grow p-5 flex flex-col justify-start gap-2">
-                <h3 className="font-['Lato'] font-bold text-[20px] text-black leading-tight">
-                  {game.name}
-                </h3>
-                <p className="font-['Lato'] font-bold text-[16px] text-black/70 line-clamp-2">
-                  {game.shortDescription || "No description available yet."}
-                </p>
-                <div className="mt-4 md:mt-auto flex gap-4">
-                  {game.platforms.map((platform) => (
-                    <span key={platform}>{renderPlatformIcon(platform)}</span>
-                  ))}
+          games.map((game) => {
+            const artwork = steamArtworkUrl(game.imageUrl);
+            return (
+              <a
+                key={game.id}
+                href={`${STEAM_STORE}/app/${game.id}/`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-col md:flex-row border-b-2 border-black last:border-b-0 bg-white hover:bg-[#f8f8f8]"
+              >
+                <div className="w-full md:w-[320px] md:flex-shrink-0 bg-gray-200 overflow-hidden aspect-[460/215]">
+                  {artwork && <Image src={artwork} alt="" width={460} height={215}
+                    className="w-full h-full object-cover" />}
                 </div>
-              </div>
 
-              <div className="p-5 pt-0 md:pt-5 flex flex-col justify-between items-end md:min-w-[180px]">
-                <div className="text-right">
-                  <div className="font-['Lato'] font-bold text-[30px] text-black leading-none">
-                    {game.price}
+                <div className="flex-grow p-5 flex flex-col justify-start gap-2">
+                  <h3 className="font-['Lato'] font-bold text-[20px] text-black leading-tight">
+                    {game.name}
+                  </h3>
+                  <p className="font-['Lato'] font-bold text-[16px] text-black/70 line-clamp-2">
+                    {game.shortDescription || "No description available yet."}
+                  </p>
+                  <div className="mt-4 md:mt-auto flex gap-4">
+                    {game.platforms.map((platform) => (
+                      <span key={platform}>{renderPlatformIcon(platform)}</span>
+                    ))}
                   </div>
-                  {game.originalPrice && game.discountPercent ? (
-                    <div className="mt-2 flex items-center justify-end gap-2 font-['Lato'] text-[14px] font-bold leading-none">
-                      <span className="text-black/70 line-through">{game.originalPrice}</span>
-                      <span className="rounded-full border border-black bg-[#d7f379] px-3 py-[5px] text-black">
-                        -{game.discountPercent}%
-                      </span>
+                </div>
+
+                <div className="p-5 pt-0 md:pt-5 flex flex-col justify-between items-end md:min-w-[180px]">
+                  <div className="text-right">
+                    <div className="font-['Lato'] font-bold text-[30px] text-black leading-none">
+                      {game.price}
                     </div>
-                  ) : null}
+                    {game.originalPrice && game.discountPercent ? (
+                      <div className="mt-2 flex items-center justify-end gap-2 font-['Lato'] text-[14px] font-bold leading-none">
+                        <span className="text-black/70 line-through">{game.originalPrice}</span>
+                        <span className="rounded-full border border-black bg-[#d7f379] px-3 py-[5px] text-black">
+                          -{game.discountPercent}%
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="font-['Lato'] font-bold text-[14px] text-black uppercase mt-2 md:mt-0 text-right">
+                    {game.releaseDate}
+                  </div>
                 </div>
-                <div className="font-['Lato'] font-bold text-[14px] text-black uppercase mt-2 md:mt-0 text-right">
-                  {game.releaseDate}
-                </div>
-              </div>
-            </a>
-          ))}
+              </a>
+            );
+          })}
 
         {isLoadingMore && (
           <div className="p-6 font-['Lato'] text-[18px] font-bold text-black">
@@ -312,7 +295,10 @@ export default function Results({
           <div className="flex justify-center p-6">
             <button
               type="button"
-              onClick={() => setPage((currentPage) => currentPage + 1)}
+              onClick={() => {
+                setIsLoadingMore(true);
+                setPage((currentPage) => currentPage + 1);
+              }}
               disabled={isLoadingMore}
               className="font-['Lato'] text-[18px] font-bold text-black hover:opacity-70 disabled:opacity-50"
             >

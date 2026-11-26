@@ -92,7 +92,11 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
   const ratings = [...new Map(
     [...(metadata.classifications ?? []), metadata.australianClassification, metadata.steamAustralianRating]
       .flatMap((rating) => rating ? [[rating.authority.toLowerCase(), rating] as const] : []),
-  ).values()];
+  ).values()].map((rating) =>
+    // Steam sometimes supplies a description of a rating band as the game's advice.
+    /^\s*games in this category may\b/i.test(rating.descriptors ?? "")
+      ? { ...rating, descriptors: null }
+      : rating);
   const officialClassifications = ratings.filter(({ authority }) => rules.officialAuthorities.includes(authority.toLowerCase()));
   const steamGeneratedRatings = ratings.filter(({ authority }) => /^steam_/i.test(authority));
   const otherRatings = ratings.filter((rating) => !officialClassifications.includes(rating) && !steamGeneratedRatings.includes(rating));

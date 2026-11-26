@@ -16,6 +16,36 @@ const rating = (authority, value, descriptors = null) => ({ authority, rating: v
 const assess = (patch, rules) => assessSteamGame({ ...base, ...patch }, date, rules);
 const category = (result, name) => result.categories.find((item) => item.category === name);
 
+test("a generic rating-band explanation cannot supply game-specific concerns", () => {
+  const result = assess({ classifications: [
+    rating("usk", "16", "Games in this category may contain intense violence. The game might have horror or stronger language."),
+    rating("esrb", "T", "Violence, Blood, Users Interact"),
+  ] });
+  assert.equal(category(result, "violence").state, "potential_concern");
+  assert.equal(category(result, "horror").state, "insufficient_information");
+  assert.equal(category(result, "strongLanguage").state, "insufficient_information");
+  assert.equal(category(result, "onlineInteraction").state, "potential_concern");
+  assert.equal(result.officialClassifications.length, 2);
+  assert.equal(result.officialClassifications[0].descriptors, null);
+});
+
+test("frequent nudity in developer advice remains significant without a descriptor ID", () => {
+  const result = assess({
+    tags: [tag(1664)],
+    developerMatureDisclosure: "The game includes frequent nudity and sexual themes.",
+  });
+  assert.equal(category(result, "sexualContent").state, "significant_concern");
+  assert.equal(category(result, "positive").state, "no_concerns_identified");
+});
+
+test("documented PC classification covers missing interaction and misspelled horror advice", () => {
+  const disney = assess({ appId: 1401590 });
+  const horror = assess({ appId: 2124490, classifications: [rating("oflc", "ma15", "Storong horror themes")] });
+  assert.equal(category(disney, "onlineInteraction").state, "potential_concern");
+  assert.equal(category(disney, "onlineInteraction").evidence[0].source, "manual_review");
+  assert.equal(category(horror, "horror").state, "significant_concern");
+});
+
 test("missing and empty fields stay insufficient across all categories", () => {
   const result = assess({ tags: [], categories: [], contentDescriptors: { ids: [], notes: null } });
   assert.equal(result.categories.length, 12);

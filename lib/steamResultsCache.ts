@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createHash } from "crypto";
 
 const DEFAULT_CACHE_TTL_SECONDS = 60 * 60 * 6;

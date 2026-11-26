@@ -1,3 +1,4 @@
+import { steamArtworkUrl } from "@/lib/gameSearch";
 import Image from "next/image";
 import Link from "next/link";
 import type { SteamAssessment } from "@/lib/assessmentEngine";
@@ -64,7 +65,7 @@ export default function GameReport({ game, assessment, incomplete, staleRetrieve
   const overview = reportOverview(assessment.categories);
   const positive = positiveSteamTags(game.tags);
   const multiplayer = [...new Set(game.multiplayer?.map(({ name }) => name))];
-  const headerImage = game.headerImage && /^https:\/\/(?:[\w.-]+\.)?steamstatic\.com\//i.test(game.headerImage) ? game.headerImage : null;
+  const headerImage = steamArtworkUrl(game.headerImage);
   const findings = (categories: Category[]) => <div className="grid gap-3 sm:grid-cols-2">
     {assessment.categories.filter(({ category }) => categories.includes(category)).map((finding) =>
       <ReportFinding key={finding.category} finding={finding} />)}

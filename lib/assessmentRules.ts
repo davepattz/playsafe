@@ -49,7 +49,7 @@ export type AssessmentRules = {
 };
 
 export const ASSESSMENT_RULES: AssessmentRules = {
-  version: "1.0.0",
+  version: "1.1.0",
   tags: {
     4667: { category: "violence", label: "Violent", state: "potential_concern" },
     4345: { category: "graphicViolence", label: "Gore", state: "potential_concern" },
@@ -90,18 +90,34 @@ export const ASSESSMENT_RULES: AssessmentRules = {
     { category: "violence", pattern: /\b(?<!sexual )violence\b|\bviolent combat\b/i, significant: /\b(strong|intense|extreme|graphic|high impact) violence\b/i },
     { category: "graphicViolence", pattern: /\b(gore|gory|dismemberment|graphic violence|graphic blood)\b/i, significant: /\b(gore|gory|dismemberment|graphic violence|graphic blood)\b/i },
     { category: "strongLanguage", pattern: /\b(strong|very strong|explicit|offensive|bad|coarse|frequent) language\b|\b(profanity|swearing)\b/i, significant: /\b(strong|explicit|frequent) (coarse )?language\b/i },
-    { category: "sexualContent", pattern: /\b(nudity|sex|sexual content|sexual material|sexual themes?|sexual violence)\b/i, significant: /\b(sexual violence|explicit sex(ual content)?|strong sexual content|high impact sexual themes?|graphic nudity)\b/i },
+    { category: "sexualContent", pattern: /\b(nudity|sex|sexual content|sexual material|sexual themes?|sexual violence)\b/i, significant: /\b(sexual violence|explicit sex(ual content)?|strong sexual content|high impact sexual themes?|(graphic|frequent) nudity)\b/i },
     { category: "substances", pattern: /\b(alcohol|tobacco|drugs?|drug use|substance abuse)\b/i, significant: /\b(strong|graphic|high impact) (drug use|substance abuse)\b/i },
     { category: "horror", pattern: /\b(horror|jump scares?|frightening (content|scenes|images))\b/i, significant: /\b(intense|strong|high impact) (horror|frightening (content|scenes|images))\b/i },
     { category: "gambling", pattern: /\b(gambling|wagering|betting with real money)\b/i, significant: /\b(real[- ]money gambling|gambling with real money|real[- ]money wagering)\b/i },
     { category: "matureThemes", pattern: /\b(mature themes?|adult themes?|strong themes?|high impact themes?|suicide|self[- ]harm)\b/i, significant: /\b(strong themes?|high impact themes?|graphic self[- ]harm)\b/i },
-    { category: "onlineInteraction", pattern: /\b(users interact|online interactivity|online interaction|online multiplayer|voice chat|online chat)\b/i },
+    { category: "onlineInteraction", pattern: /\b(users interact|online interactivity|online interactions?|online multiplayer|online play|voice chat|online chat)\b/i },
     { category: "userContent", pattern: /\b(user[- ]generated content|steam workshop)\b/i },
     { category: "purchases", pattern: /\b(in[- ](?:game|app) purchases?|microtransactions?|paid random items|loot boxes? available for purchase)\b/i },
   ],
   officialAuthorities: ["acb", "oflc", "nzoflc", "esrb", "pegi", "usk", "dejus", "kgrb", "cero", "fpb", "mda", "csrr"],
   restrictedAustralianRatings: ["MA15", "R18", "RC"],
   overrides: [
+    {
+      appId: 1401590,
+      category: "onlineInteraction",
+      state: "potential_concern",
+      reason: "The ESRB's listing for Disney Dreamlight Valley includes Users Interact and lists Windows PC among the covered platforms.",
+      sourceName: "ESRB · Disney Dreamlight Valley",
+      sourceUrl: "https://www.esrb.org/ratings/38133/disney-dreamlight-valley/",
+    },
+    {
+      appId: 2124490,
+      category: "horror",
+      state: "significant_concern",
+      reason: "The Australian Classification record for the 2024 PC and PS5 release lists strong horror themes in its consumer advice.",
+      sourceName: "Australian Classification · Silent Hill 2 (2024)",
+      sourceUrl: "https://www.classification.gov.au/titles/silent-hill-2-0",
+    },
     {
       appId: 1091500,
       category: "matureThemes",

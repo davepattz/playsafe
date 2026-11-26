@@ -1,6 +1,6 @@
 import "server-only";
 
-import { normalizeGameQuery, rankGameTitles } from "./gameSearch";
+import { hasEnoughLocalSuggestions, normalizeGameQuery, rankGameTitles, steamArtworkUrl } from "./gameSearch";
 import { searchSteamGames, STEAM_CONTEXT } from "./steamMetadata";
 import type { SteamSuggestion } from "./steamMetadata";
 import { v2Database, v2DatabaseConfigured } from "./v2Database";
@@ -15,13 +15,21 @@ async function findGames(query: string) {
     body: { p_query: query, p_region: region, p_language: language },
   }).catch(() => []);
   const local = (Array.isArray(matches) ? matches : []).map((row) => ({
-    appId: row.app_id, title: row.title, capsuleImage: row.capsule_image ?? undefined,
+    appId: row.app_id, title: row.title, capsuleImage: steamArtworkUrl(row.capsule_image),
     releaseYear: row.release_year ?? undefined, platforms: row.platforms ?? undefined,
   }));
-  if (local.length >= 5 || local.some(({ title, capsuleImage }) =>
-    capsuleImage && normalizeGameQuery(title).toLowerCase() === query.toLowerCase())) return local;
+  if (hasEnoughLocalSuggestions(local)) return rankGameTitles(local, query).slice(0, 8);
   try {
-    const live = await searchSteamGames(query);
+    const localById = new Map(local.map((game) => [game.appId, game]));
+    const live = (await searchSteamGames(query)).map((game) => {
+      const previous = localById.get(game.appId);
+      return {
+        ...game,
+        capsuleImage: game.capsuleImage ?? previous?.capsuleImage,
+        releaseYear: game.releaseYear ?? previous?.releaseYear,
+        platforms: game.platforms ?? previous?.platforms,
+      };
+    });
     if (live.length) {
       await v2Database("v2_game_catalogue?on_conflict=app_id,region,language", {
         prefer: "resolution=merge-duplicates,return=minimal",

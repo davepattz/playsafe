@@ -1,3 +1,4 @@
+import Image from "next/image";
 export default function Sidebar() {
   return (
     <div className="flex flex-col items-center gap-6">
@@ -8,7 +9,7 @@ export default function Sidebar() {
         aria-label="Buy Lil Gator Game on Instant Gaming"
         className="block w-full max-w-[300px]"
       >
-        <img
+        <Image
           src="/banners/lilgator.png"
           alt="Lil Gator Game"
           className="h-auto w-full"
@@ -23,7 +24,7 @@ export default function Sidebar() {
         aria-label="Buy LEGO City Undercover on Instant Gaming"
         className="block w-full max-w-[300px]"
       >
-        <img
+        <Image
           src="/banners/legocity.png"
           alt="LEGO City Undercover"
           className="h-auto w-full"
@@ -38,7 +39,7 @@ export default function Sidebar() {
         aria-label="Buy Overcooked 2 on Instant Gaming"
         className="block w-full max-w-[300px]"
       >
-        <img
+        <Image
           src="/banners/overcooked2.png"
           alt="Overcooked 2"
           className="h-auto w-full"

@@ -3,7 +3,25 @@ export const GAME_SEARCH_MAX_LENGTH = 100;
 export const GAME_SEARCH_DEBOUNCE_MS = 250;
 
 export function normalizeGameQuery(query: string) {
-  return query.trim().replace(/\s+/g, " ").slice(0, GAME_SEARCH_MAX_LENGTH);
+  return Array.from(query.replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f]/g, "").trim().toWellFormed())
+    .slice(0, GAME_SEARCH_MAX_LENGTH).join("").trimEnd();
+}
+
+export function hasEnoughLocalSuggestions(items: { capsuleImage?: string }[]) {
+  return items.length >= 8 && items.every(({ capsuleImage }) => Boolean(capsuleImage));
+}
+
+export function steamArtworkUrl(value: string | null | undefined) {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    const host = url.hostname;
+    if (url.protocol === "https:" && !url.port && !url.username && !url.password &&
+        (host === "steamstatic.com" || host.endsWith(".steamstatic.com") ||
+          host === "steamcdn-a.akamaihd.net")) return url.href;
+  } catch {
+    return undefined;
+  }
 }
 
 function titleWords(value: string) {
