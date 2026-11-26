@@ -5,7 +5,8 @@ import test from "node:test";
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier === "server-only") return next("data:text/javascript,export%20%7B%7D", context);
-    return next(/^\.\/[^.]+$/.test(specifier) ? specifier + ".ts" : specifier, context);
+    const local = context.parentURL?.startsWith(new URL("../lib/", import.meta.url).href);
+    return next(local && /^\.\/[^.]+$/.test(specifier) ? specifier + ".ts" : specifier, context);
   },
 });
 

@@ -90,6 +90,13 @@ Hosted setup, credentials, rollback and remaining checks are tracked in the [Pha
 SEO, analytics, preserved URLs and launch checks are tracked in the [Phase 7B launch runbook](SEO-AND-LAUNCH.md).
 The [Phase 7C production record](PRODUCTION-DEPLOYMENT.md) supersedes the separate staging-site gate and tracks production backup and rollback verification.
 
+- [x] Verify and publish the V1 archive branch and release tag after checking deployment triggers.
+- [x] Identify the existing Netlify production project and verify its immutable V1 deploy serves.
+- [x] Verify restored access to the PlaySafe Supabase project, archive the database and rehearse the application-schema restore and V2 migration on isolated PostgreSQL.
+- [x] Verify application-critical recovery and rehearse the shared-project migration, isolated role permissions and reversal.
+- [ ] Verify the dedicated shared role through the production Supavisor endpoint and confirm production-only Netlify settings.
+- [ ] Apply the compatible V2 migration and verify production configuration before merging and publishing the release candidate.
+
 - [x] Run the sample, document gaps and record rule provenance and version.
 - [x] Review public API inputs, server-side keys, output handling and route guards.
 - [x] Resolve the flagged dependency versions and run the vulnerability scan again.
