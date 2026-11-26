@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { steamArtworkUrl } from "@/lib/gameSearch";
+import { track } from "@/lib/analytics";
 import { STEAM_STORE } from "@/lib/steamStore";
 import { useEffect, useState } from "react";
 
@@ -240,6 +241,7 @@ function CatalogueResults({
               <a
                 key={game.id}
                 href={`${STEAM_STORE}/app/${game.id}/`}
+                onClick={() => track("steam_store_click", { steam_app_id: game.id })}
                 target="_blank"
                 rel="noreferrer"
                 className="flex flex-col md:flex-row border-b-2 border-black last:border-b-0 bg-white hover:bg-[#f8f8f8]"

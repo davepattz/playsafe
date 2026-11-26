@@ -6,18 +6,21 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { formatNewsDate, getAllNewsArticles } from "@/lib/newsArticles";
+import { isStagingBuild } from "@/lib/staging";
 
 export const metadata = {
   title: "News - PlaySafe.games",
   description: "Family-friendly gaming guides, news, and recommendations from PlaySafe.games.",
+  alternates: { canonical: "/news" },
 };
 
 export default function NewsPage() {
   const articles = getAllNewsArticles();
+  const showComments = !isStagingBuild();
 
   return (
     <main className="min-h-screen bg-white">
-      <DisqusCommentCounts />
+      {showComments && <DisqusCommentCounts />}
       <Header />
 
       <section className="max-w-[1222px] mx-auto px-4 py-12">
@@ -62,13 +65,13 @@ export default function NewsPage() {
                     <p className="font-['Lato'] text-[18px] leading-relaxed text-black/75">
                       {article.openingSentence}
                     </p>
-                    <Link
+                    {showComments && <Link
                       href={`/news/${article.slug}#disqus_thread`}
                       data-disqus-identifier={article.disqusIdentifier}
                       className="font-['Lato'] text-[14px] font-bold uppercase text-black hover:text-[#b185e8]"
                     >
                       Comments
-                    </Link>
+                    </Link>}
                   </div>
                 </article>
               ))}

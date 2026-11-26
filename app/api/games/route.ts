@@ -4,6 +4,7 @@ import { BAD_LANGUAGE_FILTER, badLanguageTerms } from "@/lib/badLanguageTerms";
 import { filterOptions, gameTypeOptions, playStyleOptions } from "@/lib/filterOptions";
 import { normalizeGameQuery, parseSteamAppId } from "@/lib/gameSearch";
 import { allowV2Request } from "@/lib/v2RateLimit";
+import { isCrawler } from "@/lib/reportSeo";
 import { mapFiltersToTags, type FilterGroups } from "@/lib/mapFiltersToTags";
 import {
   educationGames,
@@ -952,6 +953,7 @@ async function fetchPopularGames(
 }
 
 export async function GET(request: Request) {
+  if (isCrawler(request.headers.get("user-agent") ?? "")) return new Response(null, { status: 403 });
   try {
     const { searchParams } = new URL(request.url);
     if (searchParams.toString().length > 8192) {

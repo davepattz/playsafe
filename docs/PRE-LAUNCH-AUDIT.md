@@ -86,12 +86,21 @@ commit;
 
 ## Production readiness checklist
 
+Hosted setup, credentials, rollback and remaining checks are tracked in the [Phase 7A infrastructure runbook](HOSTED-INFRASTRUCTURE.md).
+SEO, analytics, preserved URLs and launch checks are tracked in the [Phase 7B launch runbook](SEO-AND-LAUNCH.md).
+The [Phase 7C production record](PRODUCTION-DEPLOYMENT.md) supersedes the separate staging-site gate and tracks production backup and rollback verification.
+
 - [x] Run the sample, document gaps and record rule provenance and version.
 - [x] Review public API inputs, server-side keys, output handling and route guards.
 - [x] Resolve the flagged dependency versions and run the vulnerability scan again.
 - [x] Check production-mode HTTP responses, navigation, canonical report sharing and the methodology link locally.
 - [x] Pass all 38 Node tests, ESLint with zero warnings, TypeScript and the production build.
 - [x] Verify local migration, rollback, reapplication and shared rate limits across two app processes.
+- [x] Prepare staging indexing controls and rehearse a transactional catalogue import at synthetic scale.
+- [x] Verify report SEO, cache-only crawler access, public information pages and opt-in analytics locally.
+- [ ] Confirm the production GA4 stream settings, private contact mailbox and privacy/terms review.
+- [ ] Compare production-equivalent sitemap and metadata with Search Console and historical URL evidence before release.
+- [ ] Verify protected Netlify staging access, noindex controls and environment isolation on the primary and immutable deploy URLs.
 - [ ] Verify hosted development Data API, permissions, migration and rollback with the isolated environment owner.
 - [ ] Exercise production-equivalent multi-instance request budgets, stale-cache rates, legacy fan-out and application/Steam failures.
 - [ ] Verify authenticated catalogue export, staged import, storage measurements and refresh ownership.

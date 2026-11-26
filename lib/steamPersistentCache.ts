@@ -9,19 +9,38 @@ import { allowV2Request } from "./v2RateLimit";
 const region = STEAM_CONTEXT.country_code;
 const language = STEAM_CONTEXT.language;
 const enabled = v2DatabaseConfigured();
+const selection = { select: "metadata,sources,coverage,retrieved_at,expires_at", region: `eq.${region}`, language: `eq.${language}` };
+
+function validSnapshot(record: MetadataSnapshot | null | undefined): record is MetadataSnapshot {
+  return Boolean(record?.metadata?.appType === "game" && record.metadata.title &&
+    record.sources && record.coverage &&
+    Number.isFinite(Date.parse(record.retrieved_at)) && Number.isFinite(Date.parse(record.expires_at)));
+}
+
+async function readSnapshot(appId: number) {
+  const params = new URLSearchParams({ ...selection, app_id: `eq.${appId}`, limit: "1" });
+  const records = await v2Database<MetadataSnapshot[]>(`v2_game_metadata?${params}`);
+  const record = Array.isArray(records) ? records[0] : null;
+  return validSnapshot(record) && record.metadata.appId === appId ? record : null;
+}
+
+export async function readPublishedReport(appId: number) {
+  return enabled ? readSnapshot(appId) : null;
+}
+
+export async function listFreshReportSnapshots(now: string) {
+  if (!enabled) return [];
+  const params = new URLSearchParams({
+    ...selection, expires_at: `gt.${now}`, sources: 'cs.{"appdetails":true,"getItems":true,"getTagList":true}',
+    order: "retrieved_at.desc,app_id.asc", limit: "500",
+  });
+  const records = await v2Database<MetadataSnapshot[]>(`v2_game_metadata?${params}`);
+  return Array.isArray(records) ? records.filter(validSnapshot) : [];
+}
+
 const cache = createMetadataCache({
   ttlSeconds: positiveEnv(process.env.V2_METADATA_TTL_SECONDS, 7 * 24 * 60 * 60, 60 * 24 * 60 * 60),
-  read: enabled ? async (appId) => {
-    const params = new URLSearchParams({
-      select: "metadata,sources,coverage,retrieved_at,expires_at",
-      app_id: `eq.${appId}`, region: `eq.${region}`, language: `eq.${language}`, limit: "1",
-    });
-    const records = await v2Database<MetadataSnapshot[]>(`v2_game_metadata?${params}`);
-    const record = Array.isArray(records) ? records[0] : null;
-    return record?.metadata?.appId === appId && record.metadata.appType === "game" && record.metadata.title
-      && record.sources && record.coverage
-      && Number.isFinite(Date.parse(record.retrieved_at)) && Number.isFinite(Date.parse(record.expires_at)) ? record : null;
-  } : undefined,
+  read: enabled ? readSnapshot : undefined,
   save: enabled ? (appId, record) => v2Database<boolean>("rpc/v2_save_metadata", {
     body: { p_app_id: appId, p_region: region, p_language: language, p_metadata: record.metadata,
       p_sources: record.sources, p_coverage: record.coverage,

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import SiteInformationLinks from "./SiteInformationLinks";
 
 export default function SearchSiteLayout({ children }: { children: ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function SearchSiteLayout({ children }: { children: ReactNode }) 
       </header>
       {children}
       <footer className="border-t border-[#eae1f0] bg-[#fcfaff] px-5 py-5 text-center text-sm !text-[#514960]">
+        <SiteInformationLinks />
         © {new Date().getFullYear()} PlaySafe.games
       </footer>
     </div>

@@ -6,7 +6,8 @@ import type { SteamGameMetadata } from "@/lib/steamMetadata";
 import type { Category } from "@/lib/assessmentRules";
 import { gameReportPath } from "@/lib/gameSearch";
 import { australianRatingLabel, positiveSteamTags, reportOverview } from "@/lib/reportPresentation";
-import ReportActions from "./ReportActions";
+import ReportActions, { SteamStoreLink } from "./ReportActions";
+import { SITE_URL } from "@/lib/siteUrl";
 import { ReportFinding, ReportSection, ReportStatus } from "./ReportSections";
 
 type Rating = SteamAssessment["officialClassifications"][number];
@@ -115,8 +116,8 @@ export default function GameReport({ game, assessment, incomplete, staleRetrieve
         </div>}
       </section>
       <div aria-label="Report actions" role="group" className="flex flex-wrap items-start gap-2">
-        <a href={game.storeUrl} className="inline-flex min-h-11 items-center rounded-xl bg-[#4c2b66] px-4 font-bold text-white hover:bg-[#3a204e]">View on Steam</a>
-        <ReportActions title={game.title} path={gameReportPath(game.appId, game.title)} />
+        <SteamStoreLink appId={game.appId} />
+        <ReportActions key={game.appId} appId={game.appId} title={game.title} url={SITE_URL + gameReportPath(game.appId, game.title)} />
       </div>
       <nav aria-label="In this report" className="flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-bold text-[#563569]">
         {sections.map(([id, title]) => <a key={id} href={`#${id}`} className="inline-flex min-h-11 items-center underline underline-offset-4">{title}</a>)}

@@ -9,6 +9,7 @@ import {
   gameReportPath, moveSearchSelection, normalizeGameQuery,
 } from "@/lib/gameSearch";
 import type { SteamSuggestion } from "@/lib/steamMetadata";
+import { track } from "@/lib/analytics";
 
 type Result = { revision: number; suggestions: SteamSuggestion[]; error?: string };
 
@@ -48,6 +49,7 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
           throw new Error(typeof data?.error === "string" ? data.error : "Search is unavailable. Try again.");
         }
         if (revision.current === requestRevision && !controller.signal.aborted) {
+          track("game_search", { result_count: data.suggestions.length });
           setResult({ revision: requestRevision, suggestions: data.suggestions });
         }
       } catch (error) {
@@ -77,6 +79,8 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
   }
 
   function choose(game: SteamSuggestion) {
+    if (reportPending) return;
+    track("game_select", { steam_app_id: game.appId });
     setOpen(false);
     setActive(-1);
     startReportNavigation(() => router.push(gameReportPath(game.appId, game.title)));

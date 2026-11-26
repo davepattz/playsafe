@@ -1,4 +1,5 @@
 import "server-only";
+import { isStagingBuild } from "./staging";
 
 import { createHash } from "crypto";
 
@@ -27,6 +28,7 @@ interface SteamResultsCacheResult<TPayload> {
 }
 
 function getSteamResultsCacheConfig(): SteamResultsCacheConfig | null {
+  if (isStagingBuild()) return null;
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonOrServiceKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
