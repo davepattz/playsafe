@@ -1,9 +1,15 @@
 import { Pool } from "pg";
 
+export function sharedDatabaseCa(env: NodeJS.ProcessEnv) {
+  const encoded = env.V2_SHARED_DATABASE_CA;
+  const pem = encoded ? Buffer.from(encoded, "base64").toString("utf8") : "";
+  return pem.startsWith("-----BEGIN CERTIFICATE-----") ? pem : null;
+}
+
 export function sharedDatabaseUrl(origin: URL, env: NodeJS.ProcessEnv) {
   if (env.NODE_ENV !== "production" || (env.CONTEXT && env.CONTEXT !== "production") ||
       env.PLAYSAFE_STAGING === "1" || env.V2_SUPABASE_MODE !== "shared-production" ||
-      env.V2_SUPABASE_SERVICE_ROLE_KEY) return null;
+      env.V2_SUPABASE_SERVICE_ROLE_KEY || !sharedDatabaseCa(env)) return null;
   const project = /^([a-z0-9]{20})\.supabase\.co$/.exec(origin.hostname)?.[1];
   if (origin.protocol !== "https:" || origin.port || !project) return null;
   const input = env.V2_SHARED_DATABASE_URL ?? "";
@@ -30,13 +36,15 @@ export function sharedStatement(path: string, body?: unknown) {
   if (endpoint === "v2_game_metadata" && !args) {
     const locale = [params.get("region")?.slice(3), params.get("language")?.slice(3)];
     const appId = params.get("app_id");
-    const fields = "metadata, sources, coverage, retrieved_at, expires_at";
+    const fields = `metadata, sources, coverage,
+      to_char(retrieved_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as retrieved_at,
+      to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at`;
     return appId
       ? { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and app_id=$3 limit 1`,
         values: [...locale, appId.slice(3)] }
       : { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and expires_at>$3
           and sources @> '{"appdetails":true,"getItems":true,"getTagList":true}'::jsonb
-          order by retrieved_at desc, app_id asc limit 500`, values: [...locale, params.get("expires_at")?.slice(3)] };
+          order by v2_game_metadata.retrieved_at desc, app_id asc limit 500`, values: [...locale, params.get("expires_at")?.slice(3)] };
   }
   if (endpoint === "v2_game_catalogue" && Array.isArray(body)) {
     return {
@@ -63,10 +71,10 @@ export function sharedStatement(path: string, body?: unknown) {
 
 let pool: Pool | undefined;
 
-export async function querySharedDatabase<T>(connectionString: string, path: string, body?: unknown): Promise<T> {
+export async function querySharedDatabase<T>(connectionString: string, ca: string, path: string, body?: unknown): Promise<T> {
   const { text, values, scalar } = sharedStatement(path, body);
   if (!pool) {
-    pool = new Pool({ connectionString, ssl: { rejectUnauthorized: true }, max: 2, allowExitOnIdle: true,
+    pool = new Pool({ connectionString, ssl: { ca, rejectUnauthorized: true }, max: 2, allowExitOnIdle: true,
       connectionTimeoutMillis: 2500, query_timeout: 2500 });
     // Idle socket failures are handled by the pool and have no active query to reject.
     pool.on("error", () => {});

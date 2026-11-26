@@ -6,6 +6,7 @@ const project = "abcdefghijklmnopqrst";
 const origin = new URL(`https://${project}.supabase.co`);
 const production = {
   NODE_ENV: "production", V2_SUPABASE_MODE: "shared-production",
+  V2_SHARED_DATABASE_CA: Buffer.from("-----BEGIN CERTIFICATE-----\nfixture").toString("base64"),
   V2_SHARED_DATABASE_URL: `postgresql://playsafe_v2_app.${project}:fixture@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres`,
 };
 
@@ -14,6 +15,7 @@ test("shared production requires the dedicated role and matching project without
   for (const denied of [
     { NODE_ENV: "development" }, { PLAYSAFE_STAGING: "1" }, { CONTEXT: "branch-deploy" },
     { CONTEXT: "deploy-preview" }, { V2_SUPABASE_MODE: "" }, { V2_SUPABASE_SERVICE_ROLE_KEY: "fixture" },
+    { V2_SHARED_DATABASE_CA: "" },
     ...["postgres", "other_app"].map((role) => ({
       V2_SHARED_DATABASE_URL: production.V2_SHARED_DATABASE_URL.replace("playsafe_v2_app", role),
     })),

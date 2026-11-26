@@ -1,11 +1,11 @@
 import "server-only";
-import { querySharedDatabase, sharedDatabaseUrl } from "./v2SharedDatabase";
+import { querySharedDatabase, sharedDatabaseCa, sharedDatabaseUrl } from "./v2SharedDatabase";
 
 export function v2DatabaseConfigured() {
   return databaseConfig() !== null;
 }
 
-type DatabaseConfig = { mode: "shared"; connection: string } | { mode: "rest"; url: string; key: string };
+type DatabaseConfig = { mode: "shared"; connection: string; ca: string } | { mode: "rest"; url: string; key: string };
 
 function databaseConfig(): DatabaseConfig | null {
   const input = process.env.V2_SUPABASE_URL;
@@ -21,7 +21,8 @@ function databaseConfig(): DatabaseConfig | null {
       .some((existing) => existing && new URL(existing).origin === url.origin);
     if (process.env.V2_SUPABASE_MODE === "shared-production") {
       const connection = overlapping && sharedDatabaseUrl(url, process.env);
-      return connection ? { mode: "shared", connection } : null;
+      const ca = sharedDatabaseCa(process.env);
+      return connection && ca ? { mode: "shared", connection, ca } : null;
     }
     return !overlapping && key ? { mode: "rest", url: url.origin, key } : null;
   } catch {
@@ -37,7 +38,7 @@ export function positiveEnv(input: string | undefined, fallback: number, max: nu
 export async function v2Database<T>(path: string, options: { body?: unknown; prefer?: string } = {}): Promise<T> {
   const config = databaseConfig();
   if (!config) throw new Error("V2 database is disabled");
-  if (config.mode === "shared") return querySharedDatabase(config.connection, path, options.body);
+  if (config.mode === "shared") return querySharedDatabase(config.connection, config.ca, path, options.body);
   const headers = { apikey: config.key, "Content-Type": "application/json",
     ...(config.key.startsWith("sb_secret_") ? {} : { Authorization: `Bearer ${config.key}` }),
     ...(options.prefer ? { Prefer: options.prefer } : {}) };
