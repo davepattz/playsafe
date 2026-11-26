@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import {
   GAME_SEARCH_DEBOUNCE_MS, GAME_SEARCH_MAX_LENGTH, GAME_SEARCH_MIN_LENGTH,
@@ -21,7 +20,6 @@ function SearchIcon() {
 }
 
 export default function GameSearch({ popularSearches }: { popularSearches: string[] }) {
-  const router = useRouter();
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const revision = useRef(0);
@@ -29,7 +27,7 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
   const [result, setResult] = useState<Result>();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const [reportPending, startReportNavigation] = useTransition();
+  const [reportPending, setReportPending] = useState(false);
   const query = normalizeGameQuery(search.value);
   const valid = query.length >= GAME_SEARCH_MIN_LENGTH;
   const current = result?.revision === search.revision ? result : undefined;
@@ -71,6 +69,14 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
     if (popup && active >= 0) document.getElementById(`${listbox}-${active}`)?.scrollIntoView({ block: "nearest" });
   }, [active, listbox, popup]);
 
+  useEffect(() => {
+    const restoreSearch = (event: PageTransitionEvent) => {
+      if (event.persisted) setReportPending(false);
+    };
+    window.addEventListener("pageshow", restoreSearch);
+    return () => window.removeEventListener("pageshow", restoreSearch);
+  }, []);
+
   function change(value: string) {
     revision.current += 1;
     setSearch({ value, revision: revision.current });
@@ -83,7 +89,9 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
     track("game_select", { steam_app_id: game.appId });
     setOpen(false);
     setActive(-1);
-    startReportNavigation(() => router.push(gameReportPath(game.appId, game.title)));
+    setReportPending(true);
+    // A document navigation identifies this as an interactive report request through the CDN.
+    window.location.assign(gameReportPath(game.appId, game.title));
   }
 
   function submitSearch() {

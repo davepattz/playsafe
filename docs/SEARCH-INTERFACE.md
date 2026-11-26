@@ -12,7 +12,7 @@ The homepage is a search-first interface using the existing PlaySafe logo, Lato 
 
 ## Temporary reports
 
-Selecting a game opens `/games/<appId>/<readable-title-slug>`. The Steam App ID identifies the game. If a title changes or an old slug is entered, the route redirects to the slug from the current Steam metadata. The page fetches the metadata server-side and renders the existing [Phase 2 assessment](ASSESSMENT-ENGINE.md). It rejects invalid IDs and confirmed non-games with a 404 and displays a temporary-unavailability message when upstream errors prevent identification. The report layout is intentionally temporary for Phase 4.
+Selecting a game opens `/games/<appId>/<readable-title-slug>` as a browser document navigation. This lets the production server recognise an interactive visit and load an uncached report. Crawler and preview requests still use stored reports only. The Steam App ID identifies the game, and outdated title slugs redirect to the current canonical path.
 
 The new search and report flow has no database dependency. The V1 catalogue retains its separate data path.
 
