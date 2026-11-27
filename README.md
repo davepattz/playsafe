@@ -1,8 +1,10 @@
 ﻿# PlaySafe.games
 
-[PlaySafe.games](https://playsafe.games/) helps parents and carers check what is known about a Steam game before deciding whether it suits their child. PlaySafe is independent of Valve and Steam.
+[PlaySafe.games](https://playsafe.games/) helps parents and carers worldwide check what is known about a Steam game before deciding whether it suits their child. PlaySafe is independent of Valve and Steam.
 
-PlaySafe V2 is live. It applies versioned rules to available Australian English Steam metadata to highlight content concerns, online interaction, purchases and gameplay features. Reports show available official classifications separately and mark missing evidence as unknown. PlaySafe reports do not provide official classifications, comprehensive content reviews or guarantees of suitability.
+PlaySafe V2 applies versioned rules to available Steam data to highlight content concerns, online interaction, purchases and gameplay features. Reports display the age ratings Steam returns for countries and regions around the world, with official classifications and Steam-generated ratings shown separately. PlaySafe reports do not provide official classifications, comprehensive content reviews or guarantees of suitability.
+
+PlaySafe requests Steam data in English using the Australian storefront context. Steam’s data can vary by game, edition and storefront.
 
 ## Local development
 
