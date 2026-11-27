@@ -1,5 +1,8 @@
 import type { SteamAssessment } from "@/lib/assessmentEngine";
-import { ASSESSMENT_STATE_LABELS } from "@/lib/assessmentRules";
+import type { SteamGameMetadata } from "@/lib/steamMetadata";
+import { reportCoverage, reportFinding } from "@/lib/reportPresentation";
+import type { AssessmentSources } from "@/lib/reportPresentation";
+import { ReportStatus } from "./report/ReportSections";
 
 const sources: Record<SteamAssessment["categories"][number]["evidence"][number]["source"], string> = {
   official_classification: "Classification board",
@@ -10,13 +13,10 @@ const sources: Record<SteamAssessment["categories"][number]["evidence"][number][
   steam_feature: "Steam feature",
   community_tag: "Community tag",
 };
-const coverage = {
-  direct_evidence: "Direct evidence available",
-  community_tags_only: "Community tags only",
-  no_matching_evidence: "No matching evidence",
-};
-
-export default function AssessmentPanel({ assessment, showJson = false }: { assessment: SteamAssessment; showJson?: boolean }) {
+export default function AssessmentPanel({ assessment, game, sources: availability, showJson = false }: {
+  assessment: SteamAssessment; game: SteamGameMetadata; sources: AssessmentSources; showJson?: boolean;
+}) {
+  const coverage = reportCoverage(game, availability);
   return (
     <section aria-label="Suitability assessment" className="space-y-4 rounded border bg-violet-50 p-4">
       <h3 className="text-xl font-bold">Suitability assessment</h3>
@@ -42,13 +42,17 @@ export default function AssessmentPanel({ assessment, showJson = false }: { asse
         </section>
       </div>
       <div className="divide-y rounded border bg-white">
-        {assessment.categories.map((category) => (
-          <details key={category.category} className="p-3">
+        {assessment.categories.map((category) => {
+          const presentation = reportFinding(category, coverage);
+          return <div key={category.category} className="p-3">
+          <h4 className="font-semibold">{category.label}</h4>
+          <ReportStatus state={presentation.state} label={presentation.label} tooltip={presentation.tooltip} />
+          <p className="mt-2">{presentation.explanation}</p>
+          <details className="mt-2">
             <summary className="cursor-pointer">
-              <span className="font-semibold">{category.label}</span> · {ASSESSMENT_STATE_LABELS[category.state]}
+              Evidence and coverage
             </summary>
-            <p className="mt-2">{category.explanation}</p>
-            <p className="mt-1 text-sm text-gray-700">{coverage[category.dataCoverage]}</p>
+            <p className="mt-1 text-sm text-gray-700">{presentation.evidenceCoverage}</p>
             {category.evidence.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
               {category.evidence.map((item, index) => (
                 <li key={index}>
@@ -59,7 +63,8 @@ export default function AssessmentPanel({ assessment, showJson = false }: { asse
               ))}
             </ul>}
           </details>
-        ))}
+          </div>;
+        })}
       </div>
       {showJson && <details className="rounded border bg-white p-3">
         <summary className="cursor-pointer">Assessment JSON and data coverage</summary>

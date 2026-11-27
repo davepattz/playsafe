@@ -23,6 +23,7 @@ type CategoryAssessment = {
   explanation: string;
   evidence: Evidence[];
   dataCoverage: "direct_evidence" | "community_tags_only" | "no_matching_evidence";
+  unresolvedMention?: true;
 };
 
 const sourceOrder: Record<Source, number> = {
@@ -45,11 +46,14 @@ function ratingCode(rating: string) {
   return rating.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
-function matchText(text: string, rules: AssessmentRules) {
+function matchText(text: string, rules: AssessmentRules, unresolved: Set<Category>) {
   const clauses = text.split(/[,.;!?\n\r]+/).map((clause) => clause.trim());
   return clauses.flatMap((label) => {
     // Treat mixed or negated clauses conservatively. An omitted finding remains unknown.
-    if (/\b(no|not|without|never|free of|non[- ])\b/i.test(label)) return [];
+    if (/\b(no|not|without|never|free of|non[- ])\b/i.test(label)) {
+      for (const { category, pattern } of rules.text) if (pattern.test(label)) unresolved.add(category);
+      return [];
+    }
     return rules.text.flatMap(({ category, pattern, significant }) =>
       pattern.test(label)
         ? [{ category, label, state: significant?.test(label) ? "significant_concern" as const : "potential_concern" as const }]
@@ -66,7 +70,7 @@ function assessCategory(category: Category, matches: Evidence[]): CategoryAssess
   const label = ASSESSMENT_CATEGORIES[category];
   const dataCoverage = evidence.some(({ source }) => source !== "community_tag")
     ? "direct_evidence" : evidence.length ? "community_tags_only" : "no_matching_evidence";
-  let explanation = "The available Steam data does not establish whether this concern applies.";
+  let explanation = "No finding was established for this category.";
   if (leading?.state === "no_concerns_identified") {
     explanation = category === "positive"
       ? `Available evidence highlights ${leading.label}. These features can coexist with content concerns.`
@@ -101,6 +105,7 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
   const steamGeneratedRatings = ratings.filter(({ authority }) => /^steam_/i.test(authority));
   const otherRatings = ratings.filter((rating) => !officialClassifications.includes(rating) && !steamGeneratedRatings.includes(rating));
   const evidence = new Map<Category, Evidence[]>();
+  const unresolved = new Set<Category>();
   function add(category: Category, item: Evidence) {
     const items = evidence.get(category) ?? [];
     items.push(item);
@@ -108,7 +113,7 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
   }
   function addText(text: string | null, source: Source, authority?: string) {
     if (!text) return;
-    for (const { category, ...match } of matchText(text, rules)) add(category, { ...match, source, authority });
+    for (const { category, ...match } of matchText(text, rules, unresolved)) add(category, { ...match, source, authority });
   }
 
   if (eligible) {
@@ -151,7 +156,11 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
     }
   }
 
-  const categories = categoryKeys.map((category) => assessCategory(category, evidence.get(category) ?? []));
+  const categories = categoryKeys.map((category) => {
+    const finding = assessCategory(category, evidence.get(category) ?? []);
+    if (finding.state === "insufficient_information" && unresolved.has(category)) finding.unresolvedMention = true;
+    return finding;
+  });
   const concerns = categories.filter(({ state }) => state === "significant_concern" || state === "potential_concern");
   const significant = concerns.filter(({ state }) => state === "significant_concern");
   const listed = (significant.length ? significant : concerns).slice(0, 3).map(({ label }) => label.toLowerCase()).join(", ");
@@ -159,7 +168,7 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
   const summary = !eligible ? "This Steam listing is outside the game assessment scope."
     : significant.length ? `Available evidence shows significant concerns about ${listed}.`
     : concerns.length ? `Check these potential concerns before play: ${listed}.`
-    : "The available evidence is too limited to establish suitability.";
+    : "Review the category details before deciding whether this game is suitable for your child.";
   const australianOfficial = officialClassifications.find(({ authority }) => /^(acb|oflc)$/i.test(authority));
   const australianSteam = steamGeneratedRatings.find(({ authority }) => /^steam_australia$/i.test(authority));
   const restricted = australianOfficial && rules.restrictedAustralianRatings.includes(ratingCode(australianOfficial.rating));
@@ -187,7 +196,7 @@ export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: str
     otherRatings,
     australianOfficialClassification: australianOfficial ?? null,
     steamAustralianRating: australianSteam ?? null,
-    summary: eligible && unknownCount ? `${summary} Some areas still have insufficient information.` : summary,
+    summary,
     overallGuidance,
   };
 }

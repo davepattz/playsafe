@@ -5,20 +5,23 @@ import SearchSiteLayout from "@/components/SearchSiteLayout";
 import { popularSearches } from "@/lib/popularSearches";
 import { SITE_URL } from "@/lib/siteUrl";
 
+const title = "Steam Game Search for Parents | PlaySafe.games";
+const description = "Search for a Steam game to see its age classifications and content concerns before your child plays.";
+
 export const metadata: Metadata = {
-  title: "PlaySafe.games | Know before they play",
-  description: "Find out what's inside a game before your child plays it.",
+  title,
+  description,
   alternates: { canonical: "/" },
-  openGraph: { title: "PlaySafe.games | Know before they play", description: "Explore Steam game reports for parents and carers.",
+  openGraph: { title, description,
     url: "/", type: "website", images: [{ url: "/social-card.png", width: 1200, height: 630, alt: "PlaySafe.games" }] },
-  twitter: { card: "summary_large_image", images: ["/social-card.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["/social-card.png"] },
 };
 
 export default function Home() {
   return (
     <SearchSiteLayout>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org", "@type": "WebSite", name: "PlaySafe.games", url: SITE_URL,
+        "@context": "https://schema.org", "@type": "WebSite", name: "PlaySafe.games", url: SITE_URL, description,
       }).replace(/</g, "\\u003c") }} />
       <main id="main-content" className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 pb-24 pt-16 sm:px-8 sm:pt-[clamp(6rem,16vh,12rem)]">
         <div className="mb-9 text-center">
@@ -28,7 +31,7 @@ export default function Home() {
             Know before they play.
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-[#514960] sm:text-xl">
-            Find out what&apos;s inside a game before your child plays it.
+            {description}
           </p>
         </div>
         <GameSearch popularSearches={popularSearches} />

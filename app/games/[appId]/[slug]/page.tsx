@@ -38,6 +38,7 @@ const loadReport = cache(async (value: string) => {
   const assessment = assessSteamGame(snapshot.metadata, new Date().toISOString());
   return {
     status: "ready", game: { ...snapshot.metadata, title: snapshot.metadata.title },
+    sources: snapshot.sources,
     incomplete: Object.values(snapshot.sources).some((available) => !available),
     classificationSourcesAvailable: snapshot.sources.appdetails && snapshot.sources.getItems && !stale,
     staleRetrievedAt: stale ? snapshot.retrieved_at : undefined,
@@ -84,6 +85,7 @@ export default async function ReportPage({ params }: ReportProps) {
   if (report.interactive) after(() => recordReportView(game.appId));
   const { assessment } = report;
   return <SearchSiteLayout><GameReport game={game} assessment={assessment} incomplete={report.incomplete}
+    sources={report.sources}
     classificationSourcesAvailable={report.classificationSourcesAvailable}
     staleRetrievedAt={report.staleRetrievedAt} /></SearchSiteLayout>;
 }
