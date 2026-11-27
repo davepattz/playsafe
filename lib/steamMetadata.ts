@@ -10,6 +10,7 @@ type JsonObject = Record<string, unknown>;
 type Feature = { id: number; name: string };
 type Tag = { id: number; name: string | null; weight: number | null };
 type Rating = { authority: string; rating: string; descriptors: string | null };
+export type SteamClassification = Rating & { generated?: boolean };
 type Evidence = { id: number | null; name: string };
 const STORE_GAME_TYPE = 0;
 export type SteamSuggestion = { appId: number; title: string; capsuleImage?: string; releaseYear?: number; platforms?: string[] };
@@ -26,6 +27,7 @@ export type SteamGameMetadata = {
   downloadableContent: true | null;
   categories: Feature[] | null;
   classifications: Rating[] | null;
+  reportedClassifications?: SteamClassification[];
   australianClassification: Rating | null;
   steamAustralianRating: Rating | null;
   contentDescriptors: { ids: number[] | null; notes: string | null } | null;
@@ -209,19 +211,28 @@ function detailsFor(data: unknown, appId: number) {
   return envelope?.success === true ? object(envelope.data) : undefined;
 }
 
-function classifications(details: JsonObject | undefined, item: JsonObject | undefined): Rating[] | null {
+function classifications(details: JsonObject | undefined, item: JsonObject | undefined) {
   const ratings = new Map<string, Rating>();
-  const add = (authority: string, value: unknown) => {
+  const reported: SteamClassification[] = [];
+  const add = (authority: string, value: unknown, fromDetails = false) => {
     const row = object(value);
     const rating = string(row?.rating);
-    if (!rating) return;
-    ratings.set(authority.toLowerCase(), { authority, rating, descriptors: string(row?.descriptors) });
+    const descriptors = string(row?.descriptors);
+    if (rating) ratings.set(authority.toLowerCase(), { authority, rating, descriptors });
+    const displayRating = rating ?? (typeof row?.rating === "number" && Number.isFinite(row.rating) ? String(row.rating) : null);
+    if (!displayRating || !authority.trim()) return;
+    const flag = row?.rating_generated;
+    const generated = flag === true || flag === 1 || flag === "1" || flag === "true"
+      ? true
+      : flag === false || flag === 0 || flag === "0" || flag === "false" || (flag == null && fromDetails)
+        ? false : undefined;
+    reported.push({ authority, rating: displayRating, descriptors, generated });
   };
   const browseRating = object(item?.game_rating);
   const type = string(browseRating?.type);
   if (type) add(type, browseRating);
-  for (const [authority, rating] of Object.entries(object(details?.ratings) ?? {})) add(authority, rating);
-  return ratings.size ? [...ratings.values()] : null;
+  for (const [authority, rating] of Object.entries(object(details?.ratings) ?? {})) add(authority, rating, true);
+  return { ratings: ratings.size ? [...ratings.values()] : null, reported };
 }
 
 function localizedTags(data: unknown) {
@@ -241,7 +252,7 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
   const details = detailsFor(detailsRaw, appId);
   const item = itemFor(browseRaw, appId);
   const categories = features(details?.categories);
-  const ratings = classifications(details, item);
+  const { ratings, reported } = classifications(details, item);
   const content = object(details?.content_descriptors);
   const ids = Array.isArray(content?.ids) ? content.ids.filter((id): id is number => Number.isInteger(id)) : [];
   const notes = string(content?.notes);
@@ -266,6 +277,7 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
     downloadableContent: Array.isArray(details?.dlc) && details.dlc.some((id) => Number.isInteger(id)) ? true : null,
     categories,
     classifications: ratings,
+    reportedClassifications: reported,
     australianClassification: ratings?.find(({ authority }) => /^(acb|oflc)$/i.test(authority)) ?? null,
     steamAustralianRating: ratings?.find(({ authority }) => /^steam_australia$/i.test(authority)) ?? null,
     contentDescriptors: ids.length || notes ? { ids: ids.length ? ids : null, notes } : null,
