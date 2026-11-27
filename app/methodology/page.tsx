@@ -23,7 +23,12 @@ export default function Methodology() {
         <p className="leading-relaxed">Versioned rules identify potential or significant concerns using the available evidence. Classification advice and developer disclosures carry more weight than community tags. Tags alone cannot establish a significant concern. A documented game-specific review is shown with its reason and source.</p>
       </ReportSection>
       <ReportSection id="limits" title="What the report can tell you">
-        <p className="leading-relaxed">Insufficient information means the available sources could not establish a finding. Positive gameplay features can coexist with serious concerns. Reports are informational and cannot establish suitability for a child, current moderation, the contents of modifications, or coverage across editions and regions.</p>
+        <ul className="list-disc space-y-2 pl-5 leading-relaxed">
+          <li><strong>Not mentioned</strong> means PlaySafe reviewed relevant Steam data and found no mention of the concern or feature. It may still be present in the game.</li>
+          <li><strong>Information unavailable</strong> means the relevant Steam data was missing or could not be retrieved.</li>
+          <li><strong>Insufficient information</strong> means the available evidence was incomplete or unclear.</li>
+        </ul>
+        <p className="mt-3 leading-relaxed">Positive gameplay features can coexist with serious concerns. Reports are informational and cannot establish suitability for a child, current moderation, the contents of modifications, or coverage across editions and regions.</p>
         <p className="mt-3 leading-relaxed">Use the report alongside the official classification and what you know about your child and how they would play.</p>
         <p className="mt-3 leading-relaxed">PlaySafe reports do not provide official classifications, comprehensive content reviews or guarantees of suitability.</p>
       </ReportSection>

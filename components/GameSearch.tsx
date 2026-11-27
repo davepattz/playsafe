@@ -133,7 +133,7 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
           <input ref={input} id={id} role="combobox" aria-autocomplete="list" aria-expanded={popup}
             aria-controls={popup ? listbox : undefined}
             aria-activedescendant={popup && active >= 0 ? `${listbox}-${active}` : undefined}
-            autoComplete="off" enterKeyHint="search" maxLength={GAME_SEARCH_MAX_LENGTH} placeholder="Search for a game"
+            autoComplete="off" enterKeyHint="search" maxLength={GAME_SEARCH_MAX_LENGTH} placeholder="Search for a Steam game"
             className="min-w-0 flex-1 py-4 text-lg text-[#241631] outline-none placeholder:text-[#6a5e75] sm:text-xl"
             value={search.value} onFocus={() => setOpen(true)} onChange={(event) => change(event.target.value)}
             onKeyDown={handleKey} />

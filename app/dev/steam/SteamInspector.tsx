@@ -127,7 +127,8 @@ export default function SteamInspector() {
         </pre>}
         <p role="status">{detailStatus}</p>
         {inspection && <>
-          <AssessmentPanel assessment={inspection.assessment} showJson />
+          <AssessmentPanel assessment={inspection.assessment} game={inspection.metadata}
+            sources={{ appdetails: inspection.sources.appdetails?.available === true, getItems: inspection.sources.getItems?.available === true }} showJson />
           <details className="rounded border p-3">
             <summary className="cursor-pointer">Normalized Steam metadata</summary>
             <pre className="mt-2 max-h-96 overflow-auto bg-gray-100 p-3 text-sm">{JSON.stringify(inspection.metadata, null, 2)}</pre>

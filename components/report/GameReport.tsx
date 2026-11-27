@@ -5,16 +5,17 @@ import type { SteamAssessment } from "@/lib/assessmentEngine";
 import type { SteamGameMetadata } from "@/lib/steamMetadata";
 import type { Category } from "@/lib/assessmentRules";
 import { gameReportPath } from "@/lib/gameSearch";
-import { positiveSteamTags, reportOverview } from "@/lib/reportPresentation";
+import { positiveGameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus } from "@/lib/reportPresentation";
+import type { AssessmentSources } from "@/lib/reportPresentation";
 import { reportClassifications } from "@/lib/reportClassifications";
 import ReportActions, { SteamStoreLink } from "./ReportActions";
 import { SITE_URL } from "@/lib/siteUrl";
-import { ReportFinding, ReportSection, ReportStatus } from "./ReportSections";
+import { ReportFinding, ReportInfoIcon, ReportSection, ReportStatus } from "./ReportSections";
 
 const content: Category[] = ["violence", "graphicViolence", "strongLanguage", "sexualContent", "substances", "horror", "gambling", "matureThemes"];
 const sections = [
-  ["classifications", "Age classifications"], ["content", "Content suitability"],
-  ["online", "Online safety"], ["spending", "Spending"], ["positive", "Positive gameplay"], ["transparency", "How this report works"],
+  ["classifications", "Age classifications"], ["positive", "Positive gameplay"], ["content", "Content suitability"],
+  ["online", "Online safety"], ["spending", "Spending"], ["transparency", "How this report works"],
 ];
 
 function Classifications({ game, sourcesAvailable }: { game: SteamGameMetadata; sourcesAvailable: boolean }) {
@@ -57,21 +58,22 @@ function Classifications({ game, sourcesAvailable }: { game: SteamGameMetadata; 
   </ReportSection>;
 }
 
-export default function GameReport({ game, assessment, incomplete, classificationSourcesAvailable, staleRetrievedAt }: {
+export default function GameReport({ game, assessment, sources, incomplete, classificationSourcesAvailable, staleRetrievedAt }: {
   game: SteamGameMetadata & { title: string }; assessment: SteamAssessment; incomplete: boolean;
-  classificationSourcesAvailable: boolean; staleRetrievedAt?: string;
+  sources: AssessmentSources; classificationSourcesAvailable: boolean; staleRetrievedAt?: string;
 }) {
-  const overview = reportOverview(assessment.categories);
-  const positive = positiveSteamTags(game.tags);
+  const coverage = reportCoverage(game, sources);
+  const overview = reportOverviewStatus(assessment.categories, coverage);
+  const positive = positiveGameplayFeatures(game.tags, assessment.categories);
   const multiplayer = [...new Set(game.multiplayer?.map(({ name }) => name))];
   const headerImage = steamArtworkUrl(game.headerImage);
   const findings = (categories: Category[]) => <div className="grid gap-3 sm:grid-cols-2">
     {assessment.categories.filter(({ category }) => categories.includes(category)).map((finding) =>
-      <ReportFinding key={finding.category} finding={finding} />)}
+      <ReportFinding key={finding.category} finding={finding} presentation={reportFinding(finding, coverage)} />)}
   </div>;
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 space-y-5 px-4 pb-14 pt-6 sm:space-y-6 sm:px-8 sm:pt-10">
+    <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 space-y-5 px-4 pb-14 pt-6 sm:space-y-6 sm:px-8 sm:pt-10">
       <Link href="/" className="inline-flex min-h-11 items-center font-bold text-[#563569] underline underline-offset-4">← Search for another game</Link>
       <header className="grid overflow-hidden rounded-3xl border border-[#e8ddee] bg-white md:grid-cols-[1fr_0.85fr] md:items-start">
         <div className="bg-[#eee4f4] md:order-2 md:m-5 md:overflow-hidden md:rounded-2xl">
@@ -100,8 +102,7 @@ export default function GameReport({ game, assessment, incomplete, classificatio
       <section aria-labelledby="overall-heading" className="rounded-3xl bg-[#352145] p-5 text-white sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="overall-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">Overall assessment</h2>
-          <ReportStatus state={overview.status} label={overview.status === "significant_concern" ? "Significant concerns identified"
-            : overview.status === "potential_concern" ? "Potential concerns identified" : "Insufficient information"} />
+          <ReportStatus state={overview.status} label={overview.label} />
         </div>
         <p className="mt-4 max-w-3xl text-lg font-bold">{assessment.overallGuidance}</p>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#f1e6f6] sm:text-base">{assessment.summary}</p>
@@ -121,6 +122,22 @@ export default function GameReport({ game, assessment, incomplete, classificatio
         {sections.map(([id, title]) => <a key={id} href={`#${id}`} className="inline-flex min-h-11 items-center underline underline-offset-4">{title}</a>)}
       </nav>
       <Classifications game={game} sourcesAvailable={classificationSourcesAvailable} />
+      <ReportSection id="positive" title="Positive gameplay features">
+        <p className="mb-2 text-sm text-[#514960]">Steam’s feature listings and community tags can point to creative play, learning, exploration, problem-solving or local play. These features can coexist with content concerns.</p>
+        {positive.length > 0 && <ul aria-label="Gameplay feature explanations" className="mb-4 flex flex-wrap items-start gap-2">
+          {positive.map(({ label, description }) => <li key={label} className="max-w-full">
+            <details>
+              <summary className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-[#f2e9f8] px-3 py-1 text-sm font-bold text-[#563569] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569]">
+                <ReportInfoIcon />
+                {label}
+                <span className="sr-only">. Show feature explanation</span>
+              </summary>
+              <p className="mt-1 max-w-72 rounded-lg border border-[#e8ddee] bg-[#fcfaff] px-3 py-2 text-sm text-[#514960]">{description}</p>
+            </details>
+          </li>)}
+        </ul>}
+        {findings(["positive"])}
+      </ReportSection>
       <ReportSection id="content" title="Content suitability">{findings(content)}</ReportSection>
       <ReportSection id="online" title="Online safety">
         <h3 className="font-bold">Multiplayer features listed by Steam</h3>
@@ -136,19 +153,18 @@ export default function GameReport({ game, assessment, incomplete, classificatio
           : "Additional paid content is unknown in the available data."}</p>
         {findings(["purchases"])}
       </ReportSection>
-      <ReportSection id="positive" title="Positive gameplay features">
-        <p className="mb-2 text-sm text-[#514960]">Community tags can point to creative play, learning, exploration, problem-solving or local play. They describe reported features; they do not establish suitability or cancel concerns.</p>
-        {positive.length > 0 ? <ul aria-label="Positive gameplay tags" className="mb-4 flex flex-wrap gap-2">
-          {positive.map((tag) => <li key={tag} className="rounded-full bg-[#f2e9f8] px-3 py-1 text-sm font-bold text-[#563569]">{tag}</li>)}
-        </ul> : <p className="mb-4 text-sm text-[#514960]">No relevant community tags were available.</p>}
-        {findings(["positive"])}
-      </ReportSection>
       <ReportSection id="transparency" title="How this report works">
         <p className="mb-2 text-sm text-[#514960]">Assessed <time dateTime={assessment.assessmentDate}>{assessment.assessmentDate.slice(0, 10)} UTC</time> · Rules version {assessment.rulesVersion}</p>
         <p className="mb-2 text-sm text-[#514960]">A versioned set of rules checks Australian English Steam data, including classification advice, developer disclosures, listed features and community tags. Community tags may support a finding but do not establish its severity.</p>
         <p className="mb-3 text-sm text-[#514960]">This report is informational. Store data may be incomplete or change by edition or region. Unknown evidence does not establish that a game is suitable. Check the official classification and consider your child and how they would play.</p>
         <Link href="/methodology" className="font-bold text-[#563569] underline underline-offset-4">Read the assessment methodology</Link>
       </ReportSection>
+      <div className="flex justify-end">
+        <a href="#main-content" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#e8ddee] bg-white px-4 text-sm font-bold text-[#563569] hover:bg-[#f2e9f8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569]">
+          <span aria-hidden="true">↑</span>
+          Back to top
+        </a>
+      </div>
     </main>
   );
 }
