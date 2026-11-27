@@ -57,8 +57,8 @@ export default function DisqusComments({
   }, [identifier, title]);
 
   return (
-    <section className="mt-8 rounded-[22px] border-2 border-black bg-white p-6 md:p-8">
-      <h2 className="font-['Lato'] text-[28px] font-bold leading-tight text-black">
+    <section className="rounded-2xl border border-[#e8ddee] bg-white p-5 sm:p-7">
+      <h2 className="text-2xl font-bold tracking-tight">
         Comments
       </h2>
       <div id="disqus_thread" className="mt-6" />

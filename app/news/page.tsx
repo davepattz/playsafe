@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import DisqusCommentCounts from "@/components/DisqusCommentCounts";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+import SearchSiteLayout from "@/components/SearchSiteLayout";
 import { formatNewsDate, getAllNewsArticles } from "@/lib/newsArticles";
 import { isStagingBuild } from "@/lib/staging";
 
@@ -19,70 +17,39 @@ export default function NewsPage() {
   const showComments = !isStagingBuild();
 
   return (
-    <main className="min-h-screen bg-white">
+    <SearchSiteLayout>
       {showComments && <DisqusCommentCounts />}
-      <Header />
-
-      <section className="max-w-[1222px] mx-auto px-4 py-12">
-        <div className="mx-auto max-w-[860px] text-center">
-          <h1 className="font-['Lato'] text-[36px] font-bold leading-tight text-black">
-            News
-          </h1>
-          <p className="mt-4 font-['Lato'] text-[18px] leading-relaxed text-black/75">
+      <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-8">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">News</h1>
+          <p className="mt-3 max-w-xl leading-relaxed text-[#514960] sm:text-lg">
             Guides and notes for finding safer, more family-friendly games.
           </p>
         </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-3">
-            <div className="overflow-hidden rounded-[22px] border-2 border-black bg-white">
-              {articles.map((article) => (
-                <article
-                  key={article.slug}
-                  className="group flex flex-col border-b-2 border-black last:border-b-0 hover:bg-[#f8f8f8] md:flex-row"
-                >
-                  <Link
-                    href={`/news/${article.slug}`}
-                    className="relative aspect-[16/9] w-full bg-gray-200 md:w-[320px] md:flex-shrink-0"
-                  >
-                    <Image
-                      src={article.imageUrl}
-                      alt={article.imageAlt}
-                      fill
-                      sizes="(min-width: 768px) 320px, 100vw"
-                      className="h-full w-full object-cover"
-                    />
-                  </Link>
-                  <div className="flex flex-col gap-3 p-5">
-                    <time className="font-['Lato'] text-[14px] font-bold uppercase text-black/60">
-                      {formatNewsDate(article.publishedAt)}
-                    </time>
-                    <Link href={`/news/${article.slug}`}>
-                      <h2 className="font-['Lato'] text-[28px] font-bold leading-tight text-black group-hover:text-[#b185e8]">
-                        {article.title}
-                      </h2>
-                    </Link>
-                    <p className="font-['Lato'] text-[18px] leading-relaxed text-black/75">
-                      {article.openingSentence}
-                    </p>
-                    {showComments && <Link
-                      href={`/news/${article.slug}#disqus_thread`}
-                      data-disqus-identifier={article.disqusIdentifier}
-                      className="font-['Lato'] text-[14px] font-bold uppercase text-black hover:text-[#b185e8]"
-                    >
-                      Comments
-                    </Link>}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <Sidebar />
+        <div className="grid gap-4">
+          {articles.map((article) => {
+            const articlePath = `/news/${article.slug}`;
+            return <article key={article.slug} className="overflow-hidden rounded-3xl border border-[#e8ddee] bg-white">
+              <Link href={articlePath} className="group grid md:grid-cols-[1fr_1.15fr]">
+                <div className="relative aspect-video w-full bg-[#eee4f4] md:aspect-auto md:min-h-56">
+                  <Image src={article.imageUrl} alt="" fill sizes="(min-width: 768px) 45vw, 100vw" className="object-cover" />
+                </div>
+                <div className="min-w-0 p-5 sm:p-7">
+                  <time dateTime={article.publishedAt} className="text-sm font-bold text-[#514960]">{formatNewsDate(article.publishedAt)}</time>
+                  <h2 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-[#4c2b66] group-hover:underline sm:text-3xl">{article.title}</h2>
+                  <p className="mt-3 leading-relaxed text-[#514960]">{article.openingSentence}</p>
+                </div>
+              </Link>
+              {showComments && <div className="border-t border-[#eee7f2] px-5 sm:px-7">
+                <Link href={`${articlePath}#disqus_thread`} data-disqus-identifier={article.disqusIdentifier}
+                  className="inline-flex min-h-11 items-center text-sm font-bold text-[#563569] underline underline-offset-4">
+                  Comments
+                </Link>
+              </div>}
+            </article>;
+          })}
         </div>
-      </section>
-
-      <Footer />
-    </main>
+      </main>
+    </SearchSiteLayout>
   );
 }

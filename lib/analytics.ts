@@ -39,6 +39,9 @@ type Events = {
   report_view: { steam_app_id: number };
   report_share: { steam_app_id: number; method: "native" | "copy" };
   steam_store_click: { steam_app_id: number };
+  steam_store_clicked: { steam_app_id: number; retailer_name: "Steam"; link_type: "steam_store"; affiliate: false };
+  where_to_buy_opened: { steam_app_id: number };
+  retailer_link_clicked: { steam_app_id: number; retailer_name: string; link_type: "retailer_search"; affiliate: false };
 };
 
 export function track<K extends keyof Events>(event: K, values: Events[K]) {

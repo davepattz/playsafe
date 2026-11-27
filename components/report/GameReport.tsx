@@ -8,7 +8,8 @@ import { gameReportPath } from "@/lib/gameSearch";
 import { positiveGameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus } from "@/lib/reportPresentation";
 import type { AssessmentSources } from "@/lib/reportPresentation";
 import { reportClassifications } from "@/lib/reportClassifications";
-import ReportActions, { SteamStoreLink } from "./ReportActions";
+import { retailerSearchLinks } from "@/lib/retailers";
+import ReportActions from "./ReportActions";
 import { SITE_URL } from "@/lib/siteUrl";
 import { ReportFinding, ReportInfoIcon, ReportSection, ReportStatus } from "./ReportSections";
 
@@ -114,10 +115,8 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
             </a></li>)}</ul>
         </div>}
       </section>
-      <div aria-label="Report actions" role="group" className="flex flex-wrap items-start gap-2">
-        <SteamStoreLink appId={game.appId} />
-        <ReportActions key={game.appId} appId={game.appId} title={game.title} url={SITE_URL + gameReportPath(game.appId, game.title)} />
-      </div>
+      <ReportActions key={game.appId} appId={game.appId} title={game.title} retailers={retailerSearchLinks(game)}
+        url={SITE_URL + gameReportPath(game.appId, game.title)} />
       <nav aria-label="In this report" className="flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-bold text-[#563569]">
         {sections.map(([id, title]) => <a key={id} href={`#${id}`} className="inline-flex min-h-11 items-center underline underline-offset-4">{title}</a>)}
       </nav>

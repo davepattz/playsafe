@@ -23,7 +23,10 @@ The existing GA4 stream remains configured in the code. The browser loads the ta
 | `game_select` | Selecting a suggestion to open a report | Steam App ID |
 | `report_view` | A rendered game report once per mounted visit | Steam App ID |
 | `report_share` | Native share or clipboard copy completes successfully | Steam App ID and method |
-| `steam_store_click` | Activating a game Store link on a report or catalogue card | Steam App ID |
+| `steam_store_clicked` | Activating View on Steam on a report | Steam App ID, retailer name, link type, affiliate status |
+| `steam_store_click` | Activating a Steam Store link on a legacy catalogue card | Steam App ID |
+| `where_to_buy_opened` | Expanding the report’s retailer panel | Steam App ID |
+| `retailer_link_clicked` | Activating a retailer search link | Steam App ID, retailer name, link type, affiliate status |
 
 Search requests still use the term for matching, including forwarding it to Steam as needed. The analytics payload omits search text, referrer and URL query strings, and it uses a stripped page URL. The app does not send names, contact details, account identifiers or raw IPs in event parameters. Google Analytics and hosting providers have their own request handling and data retention. Legacy video and comment embeds have separate provider policies.
 

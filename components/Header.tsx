@@ -3,61 +3,22 @@ import Link from "next/link";
 
 export default function Header() {
   return (
-    <header className="bg-white w-full">
-      <div className="max-w-[1222px] mx-auto border-b-2 border-black">
-        <div className="flex flex-col md:flex-row md:h-16 items-center md:justify-between px-4 py-4 md:py-0 relative">
-
-          {/* Logo */}
-          <div className="order-1 md:order-none md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-            <Link href="/" aria-label="PlaySafe home">
-              <Image
-                src="/logo.svg" width={174} height={28}
-                alt="PlaySafe"
-                className="h-[28px] w-auto"
-              />
-            </Link>
-          </div>
-
-          {/* Left nav */}
-          <nav className="order-2 md:order-none flex space-x-14 mt-4 md:mt-0">
-            <Link
-              href="/"
-              className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
-            >
-              Games
-            </Link>
-            <Link
-              href="/news"
-              className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
-            >
-              News
-            </Link>
-            <Link
-              href="/faq"
-              className="text-[20px] font-bold text-black hover:text-[#b185e8] transition-colors"
-            >
-              FAQ
-            </Link>
-          </nav>
-
-          {/* Right heart icon */}
-          <div className="order-3 md:order-none mt-4 md:mt-0 flex items-center">
-  <a
-    href="https://buymeacoffee.com/playsafegames"
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="Donate to PlaySafe"
-  >
-    <Image
-      src="/heart.svg" width={24} height={24}
-      alt="Donate"
-      className="h-[24px] w-[24px] hover:scale-130 transition-transform"
-    />
-  </a>
-</div>
-
-        </div>
+    <header className="w-full border-b border-[#eae1f0] bg-[#fcfaff] text-[#514960] [font-family:var(--font-lato),sans-serif]">
+      <div className="mx-auto grid min-h-16 w-full max-w-[1222px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-3 py-2 sm:px-8">
+        <nav aria-label="Main" className="flex items-center gap-2 text-sm sm:gap-6">
+          <Link href="/news" className="inline-flex min-h-11 items-center hover:underline">News</Link>
+          <Link href="/faq" className="inline-flex min-h-11 items-center hover:underline">FAQ</Link>
+        </nav>
+        <Link href="/" aria-label="PlaySafe home" className="inline-flex min-h-11 items-center">
+          <Image src="/logo.svg" width={174} height={28} alt="" className="h-auto w-28 sm:w-[174px]" />
+        </Link>
+        <a href="https://buymeacoffee.com/playsafegames" target="_blank" rel="noopener noreferrer"
+          aria-label="Donate to PlaySafe (opens in a new tab)"
+          className="group inline-flex size-11 items-center justify-center justify-self-end">
+          <Image src="/heart.svg" width={24} height={24} alt=""
+            className="size-6 motion-safe:transition-transform motion-safe:group-hover:scale-125" />
+        </a>
       </div>
     </header>
-  )
+  );
 }
