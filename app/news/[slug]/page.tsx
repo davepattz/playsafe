@@ -2,11 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import Footer from "@/components/Footer";
 import DisqusComments from "@/components/DisqusComments";
 import { isStagingBuild } from "@/lib/staging";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+import SearchSiteLayout from "@/components/SearchSiteLayout";
 import {
   formatNewsDate,
   getAllNewsArticles,
@@ -57,105 +55,57 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   }
 
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
+    <SearchSiteLayout>
+      <main id="main-content" className="mx-auto w-full max-w-4xl flex-1 space-y-5 px-4 py-8 sm:px-8 sm:py-10">
+        <Link href="/news" className="inline-flex min-h-11 items-center font-bold text-[#563569] underline underline-offset-4">
+          &larr; Back to News
+        </Link>
 
-      <section className="max-w-[1222px] mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-          <article className="lg:col-span-3">
-            <Link
-              href="/news"
-              className="font-['Lato'] text-[16px] font-bold text-black hover:text-[#b185e8]"
-            >
-              Back to News
-            </Link>
+        <article className="overflow-hidden rounded-3xl border border-[#e8ddee] bg-white">
+          <div className="relative aspect-video bg-[#eee4f4]">
+            <Image src={article.imageUrl} alt={article.imageAlt} fill preload sizes="(min-width: 896px) 832px, 100vw" className="object-cover" />
+          </div>
+          <div className="p-5 sm:p-8">
+            <time dateTime={article.publishedAt} className="text-sm font-bold text-[#514960]">{formatNewsDate(article.publishedAt)}</time>
+            <h1 className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-5xl">{article.title}</h1>
+            <p className="mt-4 text-lg leading-relaxed text-[#514960]">{article.openingSentence}</p>
 
-            <div className="mt-6 overflow-hidden rounded-[22px] border-2 border-black bg-white">
-              <div className="relative aspect-[16/9] w-full bg-gray-200">
-                <Image
-                  src={article.imageUrl}
-                  alt={article.imageAlt}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 890px, 100vw"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-
-              <div className="p-6 md:p-8">
-                <time className="font-['Lato'] text-[14px] font-bold uppercase text-black/60">
-                  {formatNewsDate(article.publishedAt)}
-                </time>
-                <h1 className="mt-3 font-['Lato'] text-[36px] font-bold leading-tight text-black md:text-[44px]">
-                  {article.title}
-                </h1>
-                <p className="mt-5 font-['Lato'] text-[20px] font-bold leading-relaxed text-black/80">
-                  {article.openingSentence}
-                </p>
-
-                <div className="mt-8 flex flex-col gap-7 border-t-2 border-black pt-8">
-                  {article.sections.map((section) => (
-                    <section key={`${article.slug}-${section.heading ?? section.body.slice(0, 24)}`}>
-                      {section.youtubeUrl && section.heading && (
-                        <div className="mb-5 overflow-hidden rounded-[14px] border-2 border-black bg-black">
-                          <iframe
-                            src={getYouTubeEmbedUrl(section.youtubeUrl)}
-                            title={`${section.heading} video`}
-                            className="aspect-video w-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          />
-                        </div>
-                      )}
-                      {section.heading && (
-                        <h2 className="font-['Lato'] text-[26px] font-bold leading-tight text-black">
-                          {section.heading}
-                        </h2>
-                      )}
-                      <p className="mt-3 font-['Lato'] text-[18px] leading-relaxed text-black/75">
-                        {section.body}
-                      </p>
-                      {section.playStyles && section.playStyles.length > 0 && (
-                        <div className="mt-4">
-                          <h3 className="font-['Lato'] text-[16px] font-bold uppercase tracking-wide text-black/60">
-                            Play styles
-                          </h3>
-                          <ul className="mt-2 flex flex-wrap gap-2">
-                            {section.playStyles.map((playStyle) => (
-                              <li
-                                key={`${section.heading}-${playStyle}`}
-                                className="rounded-full border border-black bg-[#d7f379] p-[5px] px-3 font-['Lato'] text-[14px] font-bold text-black"
-                              >
-                                {playStyle}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {section.storeUrl && (
-                        <Link
-                          href={section.storeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-flex font-['Lato'] text-[16px] font-bold text-black hover:text-[#b185e8]"
-                        >
-                          View on Steam
-                        </Link>
-                      )}
-                    </section>
-                  ))}
-                </div>
-              </div>
+            <div className="mt-7 space-y-7">
+              {article.sections.map((section) => (
+                <section key={`${article.slug}-${section.heading ?? section.body.slice(0, 24)}`} className="border-t border-[#eee7f2] pt-6">
+                  {section.heading && <h2 className="mb-3 text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{section.heading}</h2>}
+                  {section.youtubeUrl && section.heading && (
+                    <div className="mb-4 overflow-hidden rounded-xl border border-[#e8ddee] bg-black">
+                      <iframe src={getYouTubeEmbedUrl(section.youtubeUrl)} title={`${section.heading} video`}
+                        loading="lazy" className="aspect-video w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen />
+                    </div>
+                  )}
+                  <p className="leading-relaxed text-[#514960] sm:text-lg">{section.body}</p>
+                  {section.playStyles && section.playStyles.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-bold">Play styles</h3>
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {section.playStyles.map((playStyle) => <li key={playStyle} className="rounded-full bg-[#f2e9f8] px-3 py-1 text-sm font-bold text-[#563569]">
+                          {playStyle}
+                        </li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {section.storeUrl && (
+                    <a href={section.storeUrl} target="_blank" rel="noopener noreferrer"
+                      className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-[#4c2b66] px-4 font-bold text-white hover:bg-[#3a204e]">
+                      View on Steam
+                    </a>
+                  )}
+                </section>
+              ))}
             </div>
-
-            {!isStagingBuild() && <DisqusComments identifier={article.disqusIdentifier} title={article.title} />}
-          </article>
-
-          <Sidebar />
-        </div>
-      </section>
-
-      <Footer />
-    </main>
+          </div>
+        </article>
+        {!isStagingBuild() && <DisqusComments identifier={article.disqusIdentifier} title={article.title} />}
+      </main>
+    </SearchSiteLayout>
   );
 }

@@ -18,6 +18,7 @@ export type SteamGameMetadata = {
   appId: number;
   title: string | null;
   appType: string | null;
+  isFree?: boolean;
   headerImage: string | null;
   capsuleImage: string | null;
   shortDescription: string | null;
@@ -265,6 +266,7 @@ export function normalizeSteamMetadata(appId: number, detailsRaw: unknown, brows
     appId,
     title: string(details?.name) ?? string(item?.name),
     appType: string(details?.type) ?? (item && isStoreGame(item) ? "game" : null),
+    isFree: typeof details?.is_free === "boolean" ? details.is_free : undefined,
     headerImage: string(details?.header_image),
     capsuleImage: string(details?.capsule_image),
     shortDescription: string(details?.short_description) ?? string(object(item?.basic_info)?.short_description),

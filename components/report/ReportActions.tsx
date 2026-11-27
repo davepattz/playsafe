@@ -1,21 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { analyticsReadyEvent, track } from "@/lib/analytics";
+import type { RetailerLink } from "@/lib/retailers";
 import { STEAM_STORE } from "@/lib/steamStore";
 
 const buttonStyle = "min-h-11 rounded-xl border border-[#d8c7e4] bg-white px-4 font-bold text-[#563569] hover:bg-[#f2e5fa]";
 
-export function SteamStoreLink({ appId }: { appId: number }) {
+function SteamStoreLink({ appId }: { appId: number }) {
   return <a href={`${STEAM_STORE}/app/${appId}/`}
-    onClick={() => track("steam_store_click", { steam_app_id: appId })}
+    onClick={() => track("steam_store_clicked", { steam_app_id: appId, retailer_name: "Steam", link_type: "steam_store", affiliate: false })}
     className="inline-flex min-h-11 items-center rounded-xl bg-[#4c2b66] px-4 font-bold text-white hover:bg-[#3a204e]">View on Steam</a>;
 }
 
-export default function ReportActions({ appId, title, url }: { appId: number; title: string; url: string }) {
+export default function ReportActions({ appId, title, url, retailers }: {
+  appId: number; title: string; url: string; retailers: RetailerLink[];
+}) {
   const [status, setStatus] = useState("");
   const [manualLink, setManualLink] = useState<string>();
+  const [retailersOpen, setRetailersOpen] = useState(false);
+  const panelId = useId();
   const viewed = useRef(false);
+  const copied = status === "Report link copied.";
+  useEffect(() => {
+    if (!copied) return;
+    const reset = window.setTimeout(() => setStatus(""), 2500);
+    return () => window.clearTimeout(reset);
+  }, [copied]);
+
   useEffect(() => {
     const view = () => {
       if (!viewed.current) viewed.current = track("report_view", { steam_app_id: appId });
@@ -53,12 +65,43 @@ export default function ReportActions({ appId, title, url }: { appId: number; ti
   }
 
   return (
-    <div className="min-w-0">
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className={buttonStyle} onClick={share}>Share report</button>
-        <button type="button" className={buttonStyle} onClick={copy}>Copy report link</button>
+    <div className="min-w-0" aria-label="Report actions" role="group">
+      <div className="flex flex-wrap items-start gap-2">
+        <SteamStoreLink appId={appId} />
+        {retailers.length > 0 && <button type="button" aria-expanded={retailersOpen} aria-controls={panelId}
+          className={`inline-flex items-center gap-2 ${buttonStyle}`}
+          onClick={() => {
+            if (!retailersOpen) track("where_to_buy_opened", { steam_app_id: appId });
+            setRetailersOpen(!retailersOpen);
+          }}>
+          Where to buy
+          <svg aria-hidden="true" className={`size-4 ${retailersOpen ? "rotate-180" : ""}`} viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>}
+        <button type="button" className={`ml-auto ${buttonStyle}`} onClick={share}>{copied ? "Copied!" : "Share report"}</button>
       </div>
-      <p role="status" className={status ? "mt-2 text-sm text-[#514960]" : "sr-only"}>{status}</p>
+      {retailers.length > 0 && <div id={panelId} hidden={!retailersOpen}
+        className="mt-3 max-w-xl rounded-xl border border-[#e8ddee] bg-[#fcfaff] p-4 text-sm text-[#514960]">
+        <p>Check prices and availability at authorised game retailers.</p>
+        <ul className="my-2">
+          {retailers.map(({ name, href, linkType, affiliate }) => <li key={name}>
+            <a href={href} target="_blank" rel="noopener noreferrer"
+              onClick={() => track("retailer_link_clicked", { steam_app_id: appId, retailer_name: name, link_type: linkType, affiliate })}
+              className="inline-flex min-h-11 items-center gap-2 font-bold text-[#563569] underline underline-offset-4">
+              Search on {name}
+              <svg aria-hidden="true" className="size-4 shrink-0" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 5h6v6m0-6-8 8m6 0v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8c0-.6.4-1 1-1h5" />
+              </svg>
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>)}
+        </ul>
+        <p>Prices, availability, editions and regional restrictions may vary. Check the retailer&apos;s website before purchasing.</p>
+      </div>}
+      <p role="status" className={status && !copied ? "mt-2 text-sm text-[#514960]" : "sr-only"}>{status}</p>
       {manualLink && <input aria-label="Report address" readOnly value={manualLink} onFocus={(event) => event.target.select()}
         className="mt-2 w-full rounded border bg-white p-2 text-sm" />}
     </div>

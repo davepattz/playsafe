@@ -35,6 +35,7 @@ The legacy `/api/games` endpoint retains its optional `steam_results_cache` adap
 - [Steam catalogue export and import](docs/HOSTED-INFRASTRUCTURE.md#steam-catalogue-import-and-synchronisation)
 - [Assessment engine](docs/ASSESSMENT-ENGINE.md) and [game validation results](docs/GAME-ASSESSMENT-VALIDATION.md)
 - [SEO, analytics and public information](docs/SEO-AND-LAUNCH.md)
+- [Retailer search links and future affiliate integration](docs/RETAILER-INTEGRATION.md)
 
 ## License
 
