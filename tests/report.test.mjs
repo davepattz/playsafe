@@ -72,6 +72,19 @@ test("supported concerns and positive findings keep their existing status even w
   assert.equal(overall.label, "Significant concerns identified");
 });
 
+test("potential online safety concerns explain online interaction and player-made content separately", () => {
+  const { categories } = present({
+    ...cachedGame, categories: [
+      { id: 38, name: "Online Co-op" }, { id: 30, name: "Steam Workshop" }, { id: 35, name: "In-App Purchases" },
+    ],
+  });
+  assert.equal(categories.onlineInteraction.label, "Potential concern");
+  assert.match(categories.onlineInteraction.tooltip, /interact with other people online/);
+  assert.equal(categories.userContent.label, "Potential concern");
+  assert.match(categories.userContent.tooltip, /content made by other players/);
+  assert.equal(categories.purchases.tooltip, undefined);
+});
+
 test("report highlights significant concerns first without including positive or unknown findings", () => {
   const categories = [
     { category: "violence", state: "potential_concern" },

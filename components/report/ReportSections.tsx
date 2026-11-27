@@ -46,14 +46,14 @@ export function ReportStatus({ state, label = REPORT_STATE_LABELS[state], toolti
   state: ReportState; label?: string; tooltip?: string;
 }) {
   const badge = <span className={`inline-flex w-fit max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${styles[state]}`}>
-    <StatusIcon path={icons[state]} />
+    {tooltip ? <ReportInfoIcon /> : <StatusIcon path={icons[state]} />}
     {label}
   </span>;
   return tooltip ? <details>
     <summary className="inline-flex min-h-6 cursor-pointer items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569]">
       {badge}<span className="sr-only">. Show status explanation</span>
     </summary>
-    <p className="mt-1 rounded-lg bg-[#eeeaf2] px-3 py-2 text-sm text-[#514960]">{tooltip}</p>
+    <p className={`mt-1 rounded-lg px-3 py-2 text-sm ${styles[state]}`}>{tooltip}</p>
   </details> : badge;
 }
 
