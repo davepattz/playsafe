@@ -16,7 +16,8 @@ export default function Methodology() {
       <h1 className="text-4xl font-bold tracking-tight">Assessment methodology</h1>
       <p className="leading-relaxed text-[#514960]">PlaySafe is an independent, automated, rule-based assessment service. Valve operates Steam. PlaySafe helps parents interpret available Steam data before deciding what is right for their child.</p>
       <ReportSection id="sources" title="What we use">
-        <p className="leading-relaxed">The report uses the Australian English Steam listing, including official classifications reported by Steam, Steam-generated ratings, developer disclosures, listed features, content descriptors and community tags.</p>
+        <p className="leading-relaxed">The report uses Steam data requested in the Australian English store context, including classifications, developer disclosures, listed features, content descriptors and community tags.</p>
+        <p className="mt-3 leading-relaxed">Age classifications shows the ratings Steam returns across countries and regions. It lists official classifications first and Steam-generated ratings second, alphabetically by region within each group. Ratings whose origin is unclear are labelled as unverified. Each rating retains its source value and available descriptors, with English translations where verified. PlaySafe does not combine regional ratings into a recommended age.</p>
       </ReportSection>
       <ReportSection id="rules" title="How findings are generated">
         <p className="leading-relaxed">Versioned rules identify potential or significant concerns using the available evidence. Classification advice and developer disclosures carry more weight than community tags. Tags alone cannot establish a significant concern. A documented game-specific review is shown with its reason and source.</p>

@@ -10,7 +10,80 @@ registerHooks({
   },
 });
 
-const { inspectSteamGame, searchSteamGames, steamSearchErrorResponse } = await import("../lib/steamMetadata.ts");
+const { inspectSteamGame, normalizeSteamMetadata, searchSteamGames, steamSearchErrorResponse } = await import("../lib/steamMetadata.ts");
+const { reportClassifications } = await import("../lib/reportClassifications.ts");
+const { assessSteamGame } = await import("../lib/assessmentEngine.ts");
+
+const rating = (authority, value, descriptors = null, generated) => ({ authority, rating: value, descriptors, generated });
+
+test("mixed Steam ratings are grouped and sorted by region with their source values intact", () => {
+  const metadata = normalizeSteamMetadata(620, { 620: { success: true, data: { ratings: {
+    esrb: { rating: "t" },
+    cero: { rating: "c", descriptors: "暴力" },
+    pegi: { rating: 12 },
+    steam_germany: { rating: "12", rating_generated: "1" },
+    dejus: { rating: "12", descriptors: "Linguagem imprópria", rating_generated: "1" },
+    steam_australia: { rating: "PG" },
+  } } } }, { response: { store_items: [{ appid: 620, game_rating: {
+    type: "dejus", rating: "12",
+  } }] } });
+  const report = reportClassifications(metadata, true);
+  assert.deepEqual(report.official.map(({ region, rating }) => [region, rating]), [
+    ["Europe", "12"], ["Japan", "c"], ["North America", "t"],
+  ]);
+  assert.deepEqual(report.generated.map(({ region }) => region), ["Australia", "Brazil", "Germany"]);
+  assert.deepEqual(report.unverified, []);
+  assert.equal(report.official[0].descriptors, null);
+  assert.equal(report.official[1].descriptors, "暴力");
+  assert.equal(report.official[1].englishDescriptors, "Violence");
+  assert.equal(report.generated[1].descriptors, "Linguagem imprópria");
+  assert.equal(report.generated[1].englishDescriptors, "Inappropriate language");
+  const { reportedClassifications, ...oldMetadata } = metadata;
+  const date = "2026-11-27";
+  assert.ok(reportedClassifications.length);
+  assert.deepEqual(assessSteamGame(metadata, date), assessSteamGame(oldMetadata, date));
+});
+
+test("official-only legacy reports merge duplicate entries without losing distinct ratings or descriptors", () => {
+  const metadata = JSON.parse(JSON.stringify({
+    classifications: [rating("oflc", "pg"), rating("ACB", "PG", "Mild violence"),
+      rating("acb", "PG", "Mild violence"), rating("pegi", "7"), rating("pegi", "12")],
+    australianClassification: rating("oflc", "pg", "Mild themes"),
+    steamAustralianRating: null,
+  }));
+  const report = reportClassifications(metadata, true);
+  assert.equal(report.state, "available");
+  assert.deepEqual(report.generated, []);
+  assert.equal(report.official.length, 3);
+  assert.equal(report.official[0].authority, "Australian Classification Board");
+  assert.equal(report.official[0].descriptors, "Mild violence\nMild themes");
+});
+
+test("Steam-generated-only reports keep unknown regions and omit the official group", () => {
+  const report = reportClassifications({ reportedClassifications: [
+    rating("steam_germany", "6"), rating("steam_unknown", "7"), rating("steam_australia", "G"),
+  ] }, true);
+  assert.deepEqual(report.official, []);
+  assert.deepEqual(report.generated.map(({ region }) => region), ["Australia", "Country or region unspecified", "Germany"]);
+  assert.equal(report.generated[1].sourceIdentifier, "steam_unknown");
+});
+
+test("unknown authorities and ambiguous cached Brazil ratings remain visible with fallback labels", () => {
+  const report = reportClassifications({ classifications: [
+    rating("toString", "7"), rating("dejus", "12"), rating("invalid", " "),
+  ], australianClassification: null, steamAustralianRating: null }, true);
+  assert.deepEqual(report.official, []);
+  assert.deepEqual(report.generated, []);
+  assert.deepEqual(report.unverified.map(({ region, authority, sourceIdentifier }) => [region, authority, sourceIdentifier]), [
+    ["Brazil", "DEJUS", null], ["Country or region unspecified", "Unverified authority", "toString"],
+  ]);
+});
+
+test("confirmed absence and partial Steam retrieval use different empty states", () => {
+  assert.equal(reportClassifications({ reportedClassifications: [] }, true).state, "missing");
+  assert.equal(reportClassifications({ reportedClassifications: [] }, false).state, "temporarily_unavailable");
+  assert.equal(reportClassifications({ reportedClassifications: [rating("esrb", "e")] }, false).state, "available");
+});
 
 test("Steam throttling, unavailability and timeout produce distinct autocomplete errors", async (t) => {
   const fetch = t.mock.method(globalThis, "fetch");
@@ -48,6 +121,8 @@ test("missing browse and tag services preserve verified app details as partial e
   assert.equal(sources.appdetails.available, true);
   assert.equal(sources.getItems.available, false);
   assert.equal(sources.getTagList.available, false);
+  assert.equal(reportClassifications(metadata, sources.appdetails.available && sources.getItems.available).state,
+    "temporarily_unavailable");
 });
 
 test("an exact but sparse catalogue match merges live alternatives and survives Steam outages", async (t) => {
