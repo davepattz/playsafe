@@ -177,8 +177,8 @@ export default function GameSearch({ popularSearches }: { popularSearches: strin
         Loading game report…
       </p>}
       {popularSearches.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
-          <p className="mx-1 font-bold text-[#514960]">Popular searches</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-center text-sm">
+          <p className="basis-full font-bold text-[#514960] sm:mx-1 sm:basis-auto">Popular searches</p>
           {popularSearches.map((title) => (
             <button key={title} type="button" onClick={() => { change(title); input.current?.focus(); }}
               className="min-h-11 rounded-full border border-[#e1d3eb] bg-white px-3 font-bold text-[#563569] hover:bg-[#f2e5fa]">
