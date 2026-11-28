@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import InformationPage from "@/components/InformationPage";
+import { REPORT_STATUS_GUIDE } from "@/lib/reportPresentation";
 
 export const metadata = {
   title: "Frequently asked questions | PlaySafe.games",
@@ -12,8 +13,8 @@ const faqs = [
   ["Is a report an official classification?", "PlaySafe is an independent service. Its reports do not provide official classifications, comprehensive content reviews or guarantees of suitability. Where available, a board rating is attributed to the relevant authority."],
   ["Which age classifications does PlaySafe show?", "Reports show the ratings Steam returns for any country or region. Official classifications and Steam-generated ratings appear separately, in alphabetical order by country or region within each group. Ratings whose origin is unclear are labelled as unverified."],
   ["Why might a game have no age classifications listed?", "Steam coverage can vary by game, edition and region. A missing rating says nothing about suitability. If Steam cannot supply the data at the time of retrieval, the report shows a temporary availability message."],
-  ["What do the assessment statuses mean?", "Not mentioned means PlaySafe reviewed relevant Steam data and found no mention of the concern or feature. Information unavailable means relevant Steam data was missing or could not be retrieved. Insufficient information means the evidence was incomplete or unclear. These statuses give no assurance about what the game contains."],
-  ["How can I find out what a gameplay feature or online concern means?", "Select a feature chip, such as Sandbox or Split Screen, to open a short explanation. The Potential concern chips in Online safety also open explanations. Evidence and coverage shows the sources behind the assessment."],
+  ["What do the assessment statuses mean?", REPORT_STATUS_GUIDE.map(({ label, description }) => `${label}. ${description}`).join(" ")],
+  ["How can I find out what a gameplay feature or online concern means?", "Select a feature chip, such as Sandbox or Split Screen, to open a short explanation. The Potential concern chips in Online safety also open explanations. Open Evidence to see the sources behind the assessment."],
   ["How does Where to buy work?", "On supported game reports, Where to buy opens searches at Fanatical, Green Man Gaming and Humble Store. Check each retailer for price, stock, edition, activation platform and regional restrictions. View on Steam opens the game’s Steam page. Steam-confirmed free-to-play games hide the retailer panel."],
   ["How can I share a game report?", "Select Share report to open your device’s sharing options. If those options are unavailable, PlaySafe tries to copy the report link and shows Copied! on the button when it succeeds."],
   ["Is PlaySafe affiliated with Valve or Steam?", "Valve operates Steam. PlaySafe is independently operated and has no affiliation with or endorsement from Valve or Steam."],

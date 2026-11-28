@@ -23,27 +23,28 @@ function present(game, sources = completeSources) {
 test("game modes use Steam listings and deduplicate category and multiplayer entries", () => {
   const game = {
     ...cachedGame,
-    categories: [...cachedGame.categories, { id: 38, name: "Online Co-op" }, { id: 48, name: "LAN Co-op" }, { id: 39, name: "Shared/Split Screen Co-op" }, { id: 35, name: "In-App Purchases" }],
+    categories: [...cachedGame.categories, { id: 38, name: "Online Co-op" }, { id: 48, name: "LAN Co-op" }, { id: 39, name: "Shared/Split Screen Co-op" }, { id: 35, name: "In-App Purchases" }, { id: 36, name: "Online PvP" }, { id: 27, name: "Cross-Platform Multiplayer" }],
     multiplayer: [{ id: 38, name: "Online Co-Op" }],
     tags: [{ name: "Online Co-Op" }, { name: "Local Co-Op" }, { name: "Puzzle" }],
   };
-  assert.deepEqual(
-    steamGameModes(game).map(({ label }) => label),
-    ["Single-player", "Online Co-op", "LAN Co-op", "Shared/Split Screen Co-op"],
-  );
+  const modes = steamGameModes(game);
+  assert.deepEqual(modes.map(({ label }) => label),
+    ["Single-player", "Online Co-op", "LAN Co-op", "Shared/Split Screen Co-op", "Online PvP", "Cross-Platform Multiplayer"]);
+  assert.deepEqual(modes.filter(({ onlineConcern }) => onlineConcern).map(({ label }) => label),
+    ["Online Co-op", "Online PvP", "Cross-Platform Multiplayer"]);
 });
 
-test("cached Steam data distinguishes unmentioned concerns across all report sections", () => {
+test("cached Steam data distinguishes unidentified concerns from an empty feature collection", () => {
   const { categories, overall } = present(JSON.parse(JSON.stringify(cachedGame)));
   for (const key of ["violence", "onlineInteraction", "userContent", "purchases"]) {
-    assert.equal(categories[key].label, "Not mentioned");
-    assert.equal(categories[key].explanation, "This concern is not mentioned in the available Steam data.");
-    assert.equal(categories[key].tooltip, "This concern may not be present in the game, but its absence from Steam's data does not guarantee this.");
+    assert.equal(categories[key].label, "Not identified");
+    assert.equal(categories[key].explanation, "The available game information was assessed for this concern.");
+    assert.equal(categories[key].tooltip, "No evidence of this concern was identified in the available game information. This does not confirm its absence.");
     assert.equal(categories[key].evidenceCoverage, "Relevant Steam data reviewed");
   }
-  assert.equal(categories.positive.label, "Not mentioned");
-  assert.equal(categories.positive.explanation, "This feature is not mentioned in the available Steam data.");
-  assert.match(categories.positive.tooltip, /^This feature may not be present/);
+  assert.equal(categories.positive.label, "None identified");
+  assert.equal(categories.positive.explanation, "The available game information does not identify any specific positive gameplay features. This does not mean the game has no positive benefits.");
+  assert.equal(categories.positive.tooltip, undefined);
   assert.equal(overall.label, "No concerns flagged in available data");
 });
 
@@ -59,7 +60,7 @@ test("missing relevant fields and failed requests display Information unavailabl
   }
   const featureOnly = present({ appId: 101, appType: "game", categories: cachedGame.categories });
   assert.equal(featureOnly.categories.violence.label, "Information unavailable");
-  assert.equal(featureOnly.categories.purchases.label, "Not mentioned");
+  assert.equal(featureOnly.categories.purchases.label, "Not identified");
 });
 
 test("partial retrieval and unresolved mentions retain Insufficient information", () => {
@@ -70,7 +71,7 @@ test("partial retrieval and unresolved mentions retain Insufficient information"
   const ambiguous = present({ ...cachedGame, developerMatureDisclosure: "No violence or gambling" });
   assert.equal(ambiguous.categories.violence.label, "Insufficient information");
   assert.equal(ambiguous.categories.gambling.label, "Insufficient information");
-  assert.equal(ambiguous.categories.horror.label, "Not mentioned");
+  assert.equal(ambiguous.categories.horror.label, "Not identified");
 });
 
 test("supported concerns and positive findings keep their existing status even with partial coverage", () => {

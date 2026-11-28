@@ -5,13 +5,13 @@ import type { SteamAssessment } from "@/lib/assessmentEngine";
 import type { SteamGameMetadata } from "@/lib/steamMetadata";
 import type { Category } from "@/lib/assessmentRules";
 import { gameReportPath } from "@/lib/gameSearch";
-import { positiveGameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus, steamGameModes } from "@/lib/reportPresentation";
+import { ONLINE_INTERACTION_EXPLANATION, positiveGameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus, steamGameModes } from "@/lib/reportPresentation";
 import type { AssessmentSources } from "@/lib/reportPresentation";
 import { reportClassifications } from "@/lib/reportClassifications";
 import { retailerSearchLinks } from "@/lib/retailers";
-import ReportActions from "./ReportActions";
+import ReportActions, { ReportShare } from "./ReportActions";
 import { SITE_URL } from "@/lib/siteUrl";
-import { GameModeIcon, ReportFinding, ReportInfoIcon, ReportSection, ReportStatus } from "./ReportSections";
+import { GameModeIcon, PositiveFeatureChips, ReportEvidence, ReportFinding, ReportSection, ReportStatus } from "./ReportSections";
 
 const content: Category[] = ["violence", "graphicViolence", "strongLanguage", "sexualContent", "substances", "horror", "gambling", "matureThemes"];
 const sections = [
@@ -66,6 +66,7 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
   const coverage = reportCoverage(game, sources);
   const overview = reportOverviewStatus(assessment.categories, coverage);
   const features = positiveGameplayFeatures(game.tags, assessment.categories);
+  const positiveFinding = assessment.categories.find(({ category }) => category === "positive");
   const modes = steamGameModes(game);
   const multiplayer = [...new Set(game.multiplayer?.map(({ name }) => name))];
   const headerImage = steamArtworkUrl(game.headerImage);
@@ -108,46 +109,42 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
         </div>
         <p className="mt-4 max-w-3xl text-lg font-bold">{assessment.overallGuidance}</p>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#f1e6f6] sm:text-base">{assessment.summary}</p>
-        {overview.concerns.length > 0 && <div className="mt-5 border-t border-white/20 pt-4">
-          <h3 className="mb-2 text-sm font-bold">Key concerns</h3>
-          <ul className="flex flex-wrap gap-2">{overview.concerns.map((item) =>
-            <li key={item.category}><a href={`#finding-${item.category}`} className="inline-flex min-h-11 items-center underline decoration-white/60 underline-offset-4">
-              <ReportStatus state={item.state} label={item.label} />
-            </a></li>)}</ul>
-        </div>}
+        <div className={`flex flex-col gap-4 md:flex-row md:items-end ${overview.concerns.length > 0 ? "mt-5 border-t border-white/20 pt-4" : "mt-4"}`}>
+          {overview.concerns.length > 0 && <div className="min-w-0">
+            <h3 className="mb-2 text-sm font-bold">Key concerns</h3>
+            <ul className="flex flex-wrap gap-2">{overview.concerns.map((item) =>
+              <li key={item.category}><a href={`#finding-${item.category}`} className="inline-flex min-h-11 items-center underline decoration-white/60 underline-offset-4">
+                <ReportStatus state={item.state} label={item.label} />
+              </a></li>)}</ul>
+          </div>}
+          <ReportShare key={game.appId} appId={game.appId} title={game.title}
+            url={SITE_URL + gameReportPath(game.appId, game.title)} />
+        </div>
       </section>
-      <ReportActions key={game.appId} appId={game.appId} title={game.title} retailers={retailerSearchLinks(game)}
-        url={SITE_URL + gameReportPath(game.appId, game.title)} />
+      <ReportActions key={game.appId} appId={game.appId} retailers={retailerSearchLinks(game)} />
       <nav aria-label="In this report" className="flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-bold text-[#563569]">
         {sections.map(([id, title]) => <a key={id} href={`#${id}`} className="inline-flex min-h-11 items-center underline underline-offset-4">{title}</a>)}
       </nav>
       <Classifications game={game} sourcesAvailable={classificationSourcesAvailable} />
       <ReportSection id="game-modes" title="Game modes">
         {modes.length ? <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {modes.map(({ id, label, description }) => <li key={id} className="flex items-start gap-3 rounded-xl border border-[#e8ddee] bg-[#fcfaff] p-3">
+          {modes.map(({ id, label, description, onlineConcern }) => <li key={id} className="flex items-start gap-3 rounded-xl border border-[#e8ddee] bg-[#fcfaff] p-3">
             <GameModeIcon mode={id} />
             <div>
               <h3 className="text-sm font-bold">{label}</h3>
+              {onlineConcern && <div className="mt-1">
+                <ReportStatus state="potential_concern" tooltip={ONLINE_INTERACTION_EXPLANATION} />
+              </div>}
               <p className="mt-1 text-sm text-[#514960]">{description}</p>
             </div>
           </li>)}
         </ul> : <p className="text-sm text-[#514960]">No game modes are listed in the available Steam data.</p>}
       </ReportSection>
       <ReportSection id="positive" title="Positive gameplay features">
-        <p className="mb-2 text-sm text-[#514960]">Steam’s feature listings and community tags can point to creative play, learning, exploration, problem-solving or local play. These features can coexist with content concerns.</p>
-        {features.length > 0 && <ul aria-label="Gameplay feature explanations" className="mb-4 flex flex-wrap items-start gap-2">
-          {features.map(({ label, description }) => <li key={label} className="max-w-full">
-            <details>
-              <summary className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-[#f2e9f8] px-3 py-1 text-sm font-bold text-[#563569] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569]">
-                <ReportInfoIcon />
-                {label}
-                <span className="sr-only">. Show feature explanation</span>
-              </summary>
-              <p className="mt-1 max-w-72 rounded-lg border border-[#e8ddee] bg-[#fcfaff] px-3 py-2 text-sm text-[#514960]">{description}</p>
-            </details>
-          </li>)}
-        </ul>}
-        {findings(["positive"])}
+        <p className="mb-4 text-sm text-[#514960]">Steam’s feature listings and community tags can point to creative play, learning, exploration, problem-solving or local play. However, these features can coexist with content concerns.</p>
+        <PositiveFeatureChips features={features} />
+        {!!positiveFinding?.evidence.length && <ReportEvidence evidence={positiveFinding.evidence}
+          coverage={reportFinding(positiveFinding, coverage).evidenceCoverage} />}
       </ReportSection>
       <ReportSection id="content" title="Content suitability">{findings(content)}</ReportSection>
       <ReportSection id="online" title="Online safety">

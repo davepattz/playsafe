@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { REPORT_STATE_LABELS } from "@/lib/reportPresentation";
+import { NONE_IDENTIFIED, REPORT_STATE_LABELS } from "@/lib/reportPresentation";
 import type { ReportState, reportFinding } from "@/lib/reportPresentation";
 import type { SteamAssessment } from "@/lib/assessmentEngine";
 
@@ -87,6 +87,22 @@ export function ReportSection({ id, title, children }: { id: string; title: stri
   </section>;
 }
 
+export function PositiveFeatureChips({ features }: { features: { label: string; description: string }[] }) {
+  const empty = features.length === 0;
+  return <ul aria-label="Gameplay feature explanations" className="flex flex-wrap items-start gap-2">
+    {(empty ? [NONE_IDENTIFIED] : features).map(({ label, description }) => <li key={label} className="max-w-full">
+      <details>
+        <summary className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569] ${empty ? neutral : styles.no_concerns_identified}`}>
+          <StatusIcon path={empty ? informationIcon : icons.no_concerns_identified} />
+          {label}
+          <span className="sr-only">. Show feature explanation</span>
+        </summary>
+        <p className="mt-1 max-w-72 rounded-lg border border-[#e8ddee] bg-[#fcfaff] px-3 py-2 text-sm text-[#514960]">{description}</p>
+      </details>
+    </li>)}
+  </ul>;
+}
+
 export function ReportExplanation({ explanation, explanationEvidence }: ReturnType<typeof reportFinding>) {
   if (!explanationEvidence) return explanation;
   const { start, label } = explanationEvidence;
@@ -98,16 +114,20 @@ export function ReportFinding({ finding, presentation }: { finding: Category; pr
     <h3 className="mb-2 text-lg font-bold leading-tight">{finding.label}</h3>
     <ReportStatus state={presentation.state} label={presentation.label} tooltip={presentation.tooltip} />
     <p className="mt-2 text-sm leading-relaxed text-[#514960]"><ReportExplanation {...presentation} /></p>
-    <details className="mt-2 border-t border-[#eee7f2] pt-1 text-sm">
-      <summary className="min-h-11 cursor-pointer py-3 font-bold text-[#563569]">Evidence and coverage</summary>
-      <p className="mb-2 text-[#514960]">{presentation.evidenceCoverage}</p>
-      {finding.evidence.length > 0 && <ul className="list-disc space-y-2 pl-5">
-        {finding.evidence.map((item, index) => <li key={index} className="break-words">
-          <span className="font-bold">{sourceLabels[item.source]}{item.authority && ` (${item.authority.toUpperCase()})`}</span>
-          <span> · <strong>{item.label}</strong>{item.weight != null && ` (tag weight ${item.weight})`}</span>
-          {item.sourceUrl && <a className="ml-1 font-bold text-[#563569] underline" href={item.sourceUrl}>{item.sourceName}</a>}
-        </li>)}
-      </ul>}
-    </details>
+    <ReportEvidence evidence={finding.evidence} coverage={presentation.evidenceCoverage} />
   </article>;
+}
+
+export function ReportEvidence({ evidence, coverage }: { evidence: Category["evidence"]; coverage: string }) {
+  return <details className="mt-2 border-t border-[#eee7f2] pt-1 text-sm">
+    <summary className="min-h-11 cursor-pointer py-3 font-bold text-[#563569]">Evidence</summary>
+    <p className="mb-2 text-[#514960]">{coverage}</p>
+    {evidence.length > 0 && <ul className="list-disc space-y-2 pl-5">
+      {evidence.map((item, index) => <li key={index} className="break-words">
+        <span className="font-bold">{sourceLabels[item.source]}{item.authority && ` (${item.authority.toUpperCase()})`}</span>
+        <span> · <strong>{item.label}</strong>{item.weight != null && ` (tag weight ${item.weight})`}</span>
+        {item.sourceUrl && <a className="ml-1 font-bold text-[#563569] underline" href={item.sourceUrl}>{item.sourceName}</a>}
+      </li>)}
+    </ul>}
+  </details>;
 }

@@ -5,11 +5,13 @@ The report at `/games/<appId>/<title-slug>` uses the Steam App ID as its identit
 ## Report structure
 
 - [GameReport](../components/report/GameReport.tsx) lays out the Steam header, description, genres, platforms and release date, then puts the engine's overall guidance and summary before detailed findings.
-- [ReportSections](../components/report/ReportSections.tsx) presents the twelve existing assessment categories in content, online safety, spending and positive gameplay groups. Each status pairs a text label with an icon and colour. Expandable evidence shows coverage, source, label, and the reason and reference for game-specific manual reviews.
+- [ReportSections](../components/report/ReportSections.tsx) presents safety findings in content, online safety and spending groups. Each status pairs a text label with an icon and colour. Expandable evidence shows coverage, source, label, and the reason and reference for game-specific manual reviews.
+- Positive gameplay features appear as interactive chips directly in the section. Each chip opens its own explanation. Supporting assessment evidence is expandable when present. An empty collection shows a single neutral **None identified** chip.
+- **Not identified** means the available game information was assessed and no evidence of the specific concern was identified. The tooltip reads “No evidence of this concern was identified in the available game information. This does not confirm its absence.” **None identified** describes an empty collection of features. **Insufficient information** means the available source information is missing or inadequate to assess a concern.
 - Australian official classifications and Steam-generated Australian ratings have separate cards. Other official authorities, other Steam-generated ratings and unrecognised authorities stay in separate expandable groups. Unavailable ratings remain explicitly unavailable.
 - Steam platform flags, multiplayer modes, Workshop availability and listed downloadable add-ons provide context. An add-on listing does not establish its price or type of monetisation. Positive community tags are shown as descriptive gameplay signals, separate from the rules engine findings.
 - [ReportActions](../components/report/ReportActions.tsx) uses native sharing where available and clipboard copy as a fallback. If clipboard access fails, the address becomes selectable. Both actions use the canonical report path on the current origin. Steam and another-game search are direct links.
-- The report displays the assessment date and rules version and links to the public `/methodology` page. The [assessment engine](ASSESSMENT-ENGINE.md) still determines all findings. Highlighting significant concerns first is a presentation choice. A report with no flagged concern still shows insufficient information overall.
+- The report displays the assessment date and rules version and links to the public `/methodology` page. The [assessment engine](ASSESSMENT-ENGINE.md) determines all findings. The overview highlights significant concerns first and describes the scope of available data when no concerns are flagged.
 
 ## Data and route states
 

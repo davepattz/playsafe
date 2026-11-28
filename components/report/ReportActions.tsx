@@ -5,37 +5,25 @@ import { analyticsReadyEvent, track } from "@/lib/analytics";
 import type { RetailerLink } from "@/lib/retailers";
 import { STEAM_STORE } from "@/lib/steamStore";
 
-const buttonStyle = "min-h-11 rounded-xl border border-[#d8c7e4] bg-white px-4 font-bold text-[#563569] hover:bg-[#f2e5fa]";
+const buttonStyle = "min-h-11 rounded-xl border border-[#d8c7e4] px-4 font-bold text-[#563569]";
 
 function SteamStoreLink({ appId }: { appId: number }) {
   return <a href={`${STEAM_STORE}/app/${appId}/`}
     onClick={() => track("steam_store_clicked", { steam_app_id: appId, retailer_name: "Steam", link_type: "steam_store", affiliate: false })}
-    className="inline-flex min-h-11 items-center rounded-xl bg-[#4c2b66] px-4 font-bold text-white hover:bg-[#3a204e]">View on Steam</a>;
+    className="inline-flex min-h-11 items-center rounded-xl bg-[#285740] px-4 font-bold text-white hover:bg-[#204632]">View on Steam</a>;
 }
 
-export default function ReportActions({ appId, title, url, retailers }: {
-  appId: number; title: string; url: string; retailers: RetailerLink[];
+export function ReportShare({ appId, title, url }: {
+  appId: number; title: string; url: string;
 }) {
   const [status, setStatus] = useState("");
   const [manualLink, setManualLink] = useState<string>();
-  const [retailersOpen, setRetailersOpen] = useState(false);
-  const panelId = useId();
-  const viewed = useRef(false);
   const copied = status === "Report link copied.";
   useEffect(() => {
     if (!copied) return;
     const reset = window.setTimeout(() => setStatus(""), 2500);
     return () => window.clearTimeout(reset);
   }, [copied]);
-
-  useEffect(() => {
-    const view = () => {
-      if (!viewed.current) viewed.current = track("report_view", { steam_app_id: appId });
-    };
-    view();
-    window.addEventListener(analyticsReadyEvent, view);
-    return () => window.removeEventListener(analyticsReadyEvent, view);
-  }, [appId]);
 
   async function copy() {
     try {
@@ -64,12 +52,35 @@ export default function ReportActions({ appId, title, url, retailers }: {
     }
   }
 
+  return <div className="flex flex-col items-center text-center md:ml-auto md:shrink-0 md:items-end md:text-right">
+    <button type="button" className="min-h-11 rounded-xl border border-white px-4 font-bold text-white hover:bg-white/15"
+      onClick={share}>{copied ? "Copied!" : "Share report"}</button>
+    <p role="status" className={status && !copied ? "mt-2 text-sm text-[#f1e6f6]" : "sr-only"}>{status}</p>
+    {manualLink && <input aria-label="Report address" readOnly value={manualLink} onFocus={(event) => event.target.select()}
+      className="mt-2 w-full max-w-md rounded border bg-white p-2 text-sm text-[#352145]" />}
+  </div>;
+}
+
+export default function ReportActions({ appId, retailers }: { appId: number; retailers: RetailerLink[] }) {
+  const [retailersOpen, setRetailersOpen] = useState(false);
+  const panelId = useId();
+  const viewed = useRef(false);
+
+  useEffect(() => {
+    const view = () => {
+      if (!viewed.current) viewed.current = track("report_view", { steam_app_id: appId });
+    };
+    view();
+    window.addEventListener(analyticsReadyEvent, view);
+    return () => window.removeEventListener(analyticsReadyEvent, view);
+  }, [appId]);
+
   return (
     <div className="min-w-0" aria-label="Report actions" role="group">
-      <div className="flex flex-wrap items-start gap-2">
+      <div className="flex flex-wrap items-start justify-center gap-2 md:justify-start">
         <SteamStoreLink appId={appId} />
         {retailers.length > 0 && <button type="button" aria-expanded={retailersOpen} aria-controls={panelId}
-          className={`inline-flex items-center gap-2 ${buttonStyle}`}
+          className={`inline-flex items-center gap-2 bg-[#f2e5fa] hover:bg-[#e8d7f3] ${buttonStyle}`}
           onClick={() => {
             if (!retailersOpen) track("where_to_buy_opened", { steam_app_id: appId });
             setRetailersOpen(!retailersOpen);
@@ -80,7 +91,6 @@ export default function ReportActions({ appId, title, url, retailers }: {
             <path d="m6 9 6 6 6-6" />
           </svg>
         </button>}
-        <button type="button" className={`ml-auto ${buttonStyle}`} onClick={share}>{copied ? "Copied!" : "Share report"}</button>
       </div>
       {retailers.length > 0 && <div id={panelId} hidden={!retailersOpen}
         className="mt-3 max-w-xl rounded-xl border border-[#e8ddee] bg-[#fcfaff] p-4 text-sm text-[#514960]">
@@ -101,9 +111,6 @@ export default function ReportActions({ appId, title, url, retailers }: {
         </ul>
         <p>Prices, availability, editions and regional restrictions may vary. Check the retailer&apos;s website before purchasing.</p>
       </div>}
-      <p role="status" className={status && !copied ? "mt-2 text-sm text-[#514960]" : "sr-only"}>{status}</p>
-      {manualLink && <input aria-label="Report address" readOnly value={manualLink} onFocus={(event) => event.target.select()}
-        className="mt-2 w-full rounded border bg-white p-2 text-sm" />}
     </div>
   );
 }

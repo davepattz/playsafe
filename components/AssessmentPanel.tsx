@@ -50,7 +50,7 @@ export default function AssessmentPanel({ assessment, game, sources: availabilit
           <p className="mt-2"><ReportExplanation {...presentation} /></p>
           <details className="mt-2">
             <summary className="cursor-pointer">
-              Evidence and coverage
+              Evidence
             </summary>
             <p className="mt-1 text-sm text-gray-700">{presentation.evidenceCoverage}</p>
             {category.evidence.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">

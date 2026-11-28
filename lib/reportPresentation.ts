@@ -1,7 +1,7 @@
 import type { SteamAssessment } from "./assessmentEngine";
 import type { SteamGameMetadata } from "./steamMetadata";
 import type { MetadataSnapshot } from "./metadataCache";
-import { ASSESSMENT_STATE_LABELS } from "./assessmentRules.ts";
+import { ASSESSMENT_RULES, ASSESSMENT_STATE_LABELS } from "./assessmentRules.ts";
 import type { AssessmentState, Category } from "./assessmentRules";
 
 type UnresolvedState = "insufficient_information" | "not_mentioned" | "information_unavailable";
@@ -12,9 +12,29 @@ type ReportCoverage = Record<Category, UnresolvedState>;
 
 export const REPORT_STATE_LABELS: Record<ReportState, string> = {
   ...ASSESSMENT_STATE_LABELS,
-  not_mentioned: "Not mentioned",
+  not_mentioned: "Not identified",
   information_unavailable: "Information unavailable",
 };
+
+export const NONE_IDENTIFIED = {
+  label: "None identified",
+  description: "The available game information does not identify any specific positive gameplay features. This does not mean the game has no positive benefits.",
+};
+
+export const ONLINE_INTERACTION_EXPLANATION = "The available evidence suggests players may interact with other people online. Check who your child can play or communicate with and which privacy controls the game offers.";
+
+export const REPORT_STATE_DESCRIPTIONS: Record<UnresolvedState, string> = {
+  not_mentioned: "No evidence of this concern was identified in the available game information. This does not confirm its absence.",
+  insufficient_information: "The available source information is missing or inadequate to make an assessment.",
+  information_unavailable: "Relevant source information was missing or could not be retrieved.",
+};
+
+export const REPORT_STATUS_GUIDE = [
+  { label: REPORT_STATE_LABELS.not_mentioned, description: REPORT_STATE_DESCRIPTIONS.not_mentioned },
+  NONE_IDENTIFIED,
+  { label: REPORT_STATE_LABELS.insufficient_information, description: REPORT_STATE_DESCRIPTIONS.insufficient_information },
+  { label: REPORT_STATE_LABELS.information_unavailable, description: REPORT_STATE_DESCRIPTIONS.information_unavailable },
+];
 
 export function reportCoverage(game: SteamGameMetadata, sources: AssessmentSources): ReportCoverage {
   const tags = Array.isArray(game.tags);
@@ -42,9 +62,10 @@ export function reportFinding(finding: CategoryAssessment, coverage: ReportCover
     ? finding.unresolvedMention ? "insufficient_information" : coverage[finding.category]
     : finding.state;
   const subject = positive ? "feature" : "concern";
-  const label = positive && state === "no_concerns_identified" ? "Positive features identified" : REPORT_STATE_LABELS[state];
+  const label = positive && state === "no_concerns_identified" ? "Positive features identified"
+    : positive && state === "not_mentioned" ? NONE_IDENTIFIED.label : REPORT_STATE_LABELS[state];
   const descriptions = {
-    not_mentioned: `This ${subject} is not mentioned in the available Steam data.`,
+    not_mentioned: positive ? NONE_IDENTIFIED.description : "The available game information was assessed for this concern.",
     information_unavailable: `Relevant Steam information about this ${subject} is unavailable.`,
     insufficient_information: `The available evidence does not establish whether this ${subject} applies.`,
   };
@@ -56,7 +77,7 @@ export function reportFinding(finding: CategoryAssessment, coverage: ReportCover
   }[finding.dataCoverage];
   const unresolved = state === "not_mentioned" || state === "information_unavailable" || state === "insufficient_information";
   const onlineConcernExplanation = finding.category === "onlineInteraction"
-    ? "The available evidence suggests players may interact with other people online. Check who your child can play or communicate with and which privacy controls the game offers."
+    ? ONLINE_INTERACTION_EXPLANATION
     : finding.category === "userContent"
       ? "The available evidence suggests players may be able to use content made by other players, such as mods. That content can differ from the base game."
       : undefined;
@@ -64,8 +85,8 @@ export function reportFinding(finding: CategoryAssessment, coverage: ReportCover
     state, label, evidenceCoverage,
     explanation: unresolved ? descriptions[state] : finding.explanation,
     explanationEvidence: unresolved ? undefined : finding.explanationEvidence,
-    tooltip: state === "not_mentioned"
-      ? `This ${subject} may not be present in the game, but its absence from Steam's data does not guarantee this.`
+    tooltip: state === "not_mentioned" && !positive
+      ? REPORT_STATE_DESCRIPTIONS.not_mentioned
       : state === "potential_concern" ? onlineConcernExplanation : undefined,
   };
 }
@@ -153,11 +174,16 @@ const playModeDescriptions = new Map([
 const featureKey = (label: string) => label.toLowerCase().replaceAll(/[\s-]/g, "");
 
 export function steamGameModes(game: Pick<SteamGameMetadata, "categories" | "multiplayer">) {
-  const modes = new Map<string, { id: string; label: string; description: string }>();
-  for (const { name } of [...(game.categories ?? []), ...(game.multiplayer ?? [])]) {
+  const modes = new Map<string, { id: string; label: string; description: string; onlineConcern: boolean }>();
+  for (const { id, name } of [...(game.categories ?? []), ...(game.multiplayer ?? [])]) {
     const key = featureKey(name);
     const description = playModeDescriptions.get(key);
-    if (description && !modes.has(key)) modes.set(key, { id: key, label: name, description });
+    if (!description) continue;
+    const signal = id === null ? undefined : ASSESSMENT_RULES.features[id];
+    const onlineConcern = signal?.category === "onlineInteraction" && signal.state === "potential_concern";
+    const existing = modes.get(key);
+    if (existing) existing.onlineConcern ||= onlineConcern;
+    else modes.set(key, { id: key, label: name, description, onlineConcern });
   }
   return [...modes.values()];
 }
