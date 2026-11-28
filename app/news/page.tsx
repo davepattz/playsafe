@@ -7,8 +7,8 @@ import { formatNewsDate, getAllNewsArticles } from "@/lib/newsArticles";
 import { isStagingBuild } from "@/lib/staging";
 
 export const metadata = {
-  title: "News - PlaySafe.games",
-  description: "Family-friendly gaming guides, news, and recommendations from PlaySafe.games.",
+  title: "Blog - PlaySafe.games",
+  description: "Family-friendly gaming guides and recommendations from the PlaySafe.games blog.",
   alternates: { canonical: "/news" },
 };
 
@@ -21,7 +21,7 @@ export default function NewsPage() {
       {showComments && <DisqusCommentCounts />}
       <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-8">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">News</h1>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Blog</h1>
           <p className="mt-3 max-w-xl leading-relaxed text-[#514960] sm:text-lg">
             Guides and notes for finding safer, more family-friendly games.
           </p>

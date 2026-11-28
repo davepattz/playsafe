@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: NewsArticlePageProps) {
 
   if (!article) {
     return {
-      title: "News - PlaySafe.games",
+      title: "Blog - PlaySafe.games",
     };
   }
 
@@ -58,7 +58,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     <SearchSiteLayout>
       <main id="main-content" className="mx-auto w-full max-w-4xl flex-1 space-y-5 px-4 py-8 sm:px-8 sm:py-10">
         <Link href="/news" className="inline-flex min-h-11 items-center font-bold text-[#563569] underline underline-offset-4">
-          &larr; Back to News
+          &larr; Back to Blog
         </Link>
 
         <article className="overflow-hidden rounded-3xl border border-[#e8ddee] bg-white">
