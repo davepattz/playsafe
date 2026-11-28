@@ -18,6 +18,29 @@ export function ReportInfoIcon() {
   return <StatusIcon path={informationIcon} />;
 }
 
+const gameModeIcons = {
+  solo: "M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M14 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+  group: "M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-4m-1-12a4 4 0 0 1 0 8M14 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+  competition: "m3 3 4 1 10 10-3 3L4 7 3 3Zm14 11 3-3m-6 6-3 3m6-3 4 4m0-18-4 1-4 4m-5 5-4 4m0-3 6 6m-3-3-4 4",
+  online: "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM2 12h20m-10-10c5 5 5 15 0 20-5-5-5-15 0-20Z",
+  screen: "M3 4h18v13H3zM12 4v13m-4 4h8m-4-4v4",
+  network: "M9 3h6v6H9zM2 15h6v6H2zm14 0h6v6h-6zM12 9v3m-7 3v-3h14v3",
+  remote: "M3 4h13v11H3zm5 15h4m-2-4v4m9-9h3v10h-6v-3",
+};
+
+export function GameModeIcon({ mode }: { mode: string }) {
+  const path = mode === "singleplayer" ? gameModeIcons.solo
+    : mode.startsWith("shared/") ? gameModeIcons.screen
+    : mode.startsWith("lan") ? gameModeIcons.network
+    : mode === "remoteplaytogether" || mode === "crossplatformmultiplayer" ? gameModeIcons.remote
+    : mode.endsWith("pvp") ? gameModeIcons.competition
+    : mode.startsWith("online") || mode === "mmo" || mode === "massivelymultiplayer" ? gameModeIcons.online
+    : gameModeIcons.group;
+  return <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#f2e9f8] text-[#563569]">
+    <StatusIcon path={path} />
+  </span>;
+}
+
 function StatusIcon({ path }: { path: string }) {
   return <svg aria-hidden="true" className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d={path} />

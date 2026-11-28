@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { australianRatingLabel, gameplayFeatures, positiveGameplayFeatures, positiveSteamTags, reportCoverage, reportFinding, reportOverview, reportOverviewStatus } from "../lib/reportPresentation.ts";
+import { australianRatingLabel, positiveGameplayFeatures, positiveSteamTags, reportCoverage, reportFinding, reportOverview, reportOverviewStatus, steamGameModes } from "../lib/reportPresentation.ts";
 import { assessSteamGame } from "../lib/assessmentEngine.ts";
 
 const completeSources = { appdetails: true, getItems: true };
@@ -20,16 +20,16 @@ function present(game, sources = completeSources) {
   };
 }
 
-test("gameplay chips combine listed play modes and community features without duplicates", () => {
+test("game modes use Steam listings and deduplicate category and multiplayer entries", () => {
   const game = {
     ...cachedGame,
-    categories: [...cachedGame.categories, { id: 38, name: "Online Co-op" }, { id: 48, name: "LAN Co-op" }, { id: 35, name: "In-App Purchases" }],
-    multiplayer: [{ id: 38, name: "Online Co-op" }],
+    categories: [...cachedGame.categories, { id: 38, name: "Online Co-op" }, { id: 48, name: "LAN Co-op" }, { id: 39, name: "Shared/Split Screen Co-op" }, { id: 35, name: "In-App Purchases" }],
+    multiplayer: [{ id: 38, name: "Online Co-Op" }],
     tags: [{ name: "Online Co-Op" }, { name: "Local Co-Op" }, { name: "Puzzle" }],
   };
   assert.deepEqual(
-    gameplayFeatures(game, []).map(({ label }) => label),
-    ["Single-player", "Online Co-op", "LAN Co-op", "Local Co-Op", "Puzzle"],
+    steamGameModes(game).map(({ label }) => label),
+    ["Single-player", "Online Co-op", "LAN Co-op", "Shared/Split Screen Co-op"],
   );
 });
 

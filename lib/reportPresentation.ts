@@ -135,6 +135,9 @@ const playModeDescriptions = new Map([
   ["onlinemultiplayer", "Two or more players can play together over the internet."],
   ["localcoop", positiveTagDescriptions.get("Local Co-Op")!],
   ["localmultiplayer", positiveTagDescriptions.get("Local Multiplayer")!],
+  ["shared/splitscreen", positiveListedDescriptions.get("Shared/Split Screen")!],
+  ["shared/splitscreencoop", positiveListedDescriptions.get("Shared/Split Screen Co-op")!],
+  ["shared/splitscreenpvp", positiveListedDescriptions.get("Shared/Split Screen PvP")!],
   ["pvp", "Players can compete against each other."],
   ["onlinepvp", "Players can compete against each other over the internet."],
   ["localpvp", "Players in the same room can compete against each other."],
@@ -149,22 +152,14 @@ const playModeDescriptions = new Map([
 
 const featureKey = (label: string) => label.toLowerCase().replaceAll(/[\s-]/g, "");
 
-export function gameplayFeatures(
-  game: Pick<SteamGameMetadata, "categories" | "multiplayer" | "tags">,
-  findings: SteamAssessment["categories"],
-) {
-  const features = new Map<string, { label: string; description: string }>();
-  for (const { name } of [...(game.categories ?? []), ...(game.multiplayer ?? []), ...(game.tags ?? [])]) {
-    if (!name) continue;
+export function steamGameModes(game: Pick<SteamGameMetadata, "categories" | "multiplayer">) {
+  const modes = new Map<string, { id: string; label: string; description: string }>();
+  for (const { name } of [...(game.categories ?? []), ...(game.multiplayer ?? [])]) {
     const key = featureKey(name);
-    const description = playModeDescriptions.get(key) ?? positiveListedDescriptions.get(name);
-    if (description && !features.has(key)) features.set(key, { label: name, description });
+    const description = playModeDescriptions.get(key);
+    if (description && !modes.has(key)) modes.set(key, { id: key, label: name, description });
   }
-  for (const feature of positiveGameplayFeatures(game.tags, findings)) {
-    const key = featureKey(feature.label);
-    if (!features.has(key)) features.set(key, feature);
-  }
-  return [...features.values()];
+  return [...modes.values()];
 }
 
 export function australianRatingLabel(value: string) {
