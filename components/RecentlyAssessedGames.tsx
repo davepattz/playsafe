@@ -9,7 +9,7 @@ export default async function RecentlyAssessedGames() {
   if (!games.length) return null;
 
   return <section aria-labelledby="recent-games-heading" className="mt-10">
-    <h2 id="recent-games-heading" className="mb-4 text-xl font-bold tracking-tight text-[#4c2b66]">Recently assessed games</h2>
+    <h2 id="recent-games-heading" className="mb-4 text-center text-xl font-bold tracking-tight text-[#4c2b66]">Explore game reports</h2>
     <ul className="grid grid-cols-2 gap-3 md:grid-cols-3">
       {games.map(({ appId, title, href, artwork }) => <li key={appId} className="min-w-0">
         <Link href={href} prefetch={false}
