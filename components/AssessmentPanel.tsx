@@ -2,7 +2,7 @@ import type { SteamAssessment } from "@/lib/assessmentEngine";
 import type { SteamGameMetadata } from "@/lib/steamMetadata";
 import { reportCoverage, reportFinding } from "@/lib/reportPresentation";
 import type { AssessmentSources } from "@/lib/reportPresentation";
-import { ReportStatus } from "./report/ReportSections";
+import { ReportExplanation, ReportStatus } from "./report/ReportSections";
 
 const sources: Record<SteamAssessment["categories"][number]["evidence"][number]["source"], string> = {
   official_classification: "Classification board",
@@ -47,7 +47,7 @@ export default function AssessmentPanel({ assessment, game, sources: availabilit
           return <div key={category.category} className="p-3">
           <h4 className="font-semibold">{category.label}</h4>
           <ReportStatus state={presentation.state} label={presentation.label} tooltip={presentation.tooltip} />
-          <p className="mt-2">{presentation.explanation}</p>
+          <p className="mt-2"><ReportExplanation {...presentation} /></p>
           <details className="mt-2">
             <summary className="cursor-pointer">
               Evidence and coverage
@@ -56,7 +56,7 @@ export default function AssessmentPanel({ assessment, game, sources: availabilit
             {category.evidence.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
               {category.evidence.map((item, index) => (
                 <li key={index}>
-                  {[sources[item.source], item.authority?.toUpperCase(), item.label].filter(Boolean).join(" · ")}
+                  {[sources[item.source], item.authority?.toUpperCase()].filter(Boolean).join(" · ")} · <strong>{item.label}</strong>
                   {item.weight != null && ` (tag weight ${item.weight})`}
                   {item.sourceUrl && <> <a className="underline" href={item.sourceUrl}>{item.sourceName}</a></>}
                 </li>

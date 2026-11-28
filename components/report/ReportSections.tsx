@@ -64,18 +64,24 @@ export function ReportSection({ id, title, children }: { id: string; title: stri
   </section>;
 }
 
+export function ReportExplanation({ explanation, explanationEvidence }: ReturnType<typeof reportFinding>) {
+  if (!explanationEvidence) return explanation;
+  const { start, label } = explanationEvidence;
+  return <>{explanation.slice(0, start)}<strong>{label}</strong>{explanation.slice(start + label.length)}</>;
+}
+
 export function ReportFinding({ finding, presentation }: { finding: Category; presentation: ReturnType<typeof reportFinding> }) {
   return <article id={`finding-${finding.category}`} className="min-w-0 scroll-mt-6 rounded-xl border border-[#e8ddee] px-3 py-4 sm:px-4">
     <h3 className="mb-2 text-lg font-bold leading-tight">{finding.label}</h3>
     <ReportStatus state={presentation.state} label={presentation.label} tooltip={presentation.tooltip} />
-    <p className="mt-2 text-sm leading-relaxed text-[#514960]">{presentation.explanation}</p>
+    <p className="mt-2 text-sm leading-relaxed text-[#514960]"><ReportExplanation {...presentation} /></p>
     <details className="mt-2 border-t border-[#eee7f2] pt-1 text-sm">
       <summary className="min-h-11 cursor-pointer py-3 font-bold text-[#563569]">Evidence and coverage</summary>
       <p className="mb-2 text-[#514960]">{presentation.evidenceCoverage}</p>
       {finding.evidence.length > 0 && <ul className="list-disc space-y-2 pl-5">
         {finding.evidence.map((item, index) => <li key={index} className="break-words">
           <span className="font-bold">{sourceLabels[item.source]}{item.authority && ` (${item.authority.toUpperCase()})`}</span>
-          <span> · {item.label}{item.weight != null && ` (tag weight ${item.weight})`}</span>
+          <span> · <strong>{item.label}</strong>{item.weight != null && ` (tag weight ${item.weight})`}</span>
           {item.sourceUrl && <a className="ml-1 font-bold text-[#563569] underline" href={item.sourceUrl}>{item.sourceName}</a>}
         </li>)}
       </ul>}

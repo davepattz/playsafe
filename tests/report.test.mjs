@@ -82,6 +82,10 @@ test("supported concerns and positive findings keep their existing status even w
   assert.equal(categories.purchases.label, "Potential concern");
   assert.equal(categories.positive.label, "Positive features identified");
   assert.equal(categories.positive.tooltip, undefined);
+  assert.deepEqual(categories.positive.explanationEvidence, {
+    start: "Available evidence highlights ".length,
+    label: "Shared/Split Screen",
+  });
   assert.equal(overall.label, "Significant concerns identified");
 });
 
@@ -93,6 +97,10 @@ test("potential online safety concerns explain online interaction and player-mad
   });
   assert.equal(categories.onlineInteraction.label, "Potential concern");
   assert.match(categories.onlineInteraction.tooltip, /interact with other people online/);
+  assert.deepEqual(categories.onlineInteraction.explanationEvidence, {
+    start: "Steam lists the feature “".length,
+    label: "Online Co-op",
+  });
   assert.equal(categories.userContent.label, "Potential concern");
   assert.match(categories.userContent.tooltip, /content made by other players/);
   assert.equal(categories.purchases.tooltip, undefined);

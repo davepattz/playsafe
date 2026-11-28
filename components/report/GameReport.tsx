@@ -140,9 +140,11 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
       <ReportSection id="content" title="Content suitability">{findings(content)}</ReportSection>
       <ReportSection id="online" title="Online safety">
         <h3 className="font-bold">Multiplayer features listed by Steam</h3>
-        <p className="mb-3 mt-1 text-sm text-[#514960]">{multiplayer.length ? multiplayer.join(" · ") : "Multiplayer features are unknown in the available data."}</p>
+        <p className="mb-3 mt-1 text-sm text-[#514960]">{multiplayer.length ? multiplayer.map((name, index) =>
+          <span key={name}>{index > 0 && " · "}<strong>{name}</strong></span>)
+          : "Multiplayer features are unknown in the available data."}</p>
         <p className="mb-4 text-sm text-[#514960]">{game.workshop
-          ? "Steam Workshop is listed. Community content and modifications can differ from the base game."
+          ? <><strong>Steam Workshop</strong> is listed. Community content and modifications can differ from the base game.</>
           : "Steam Workshop availability and other ways to install modifications are unknown."}</p>
         {findings(["onlineInteraction", "userContent"])}
       </ReportSection>

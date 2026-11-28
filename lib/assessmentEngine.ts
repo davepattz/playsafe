@@ -21,6 +21,7 @@ type CategoryAssessment = {
   label: string;
   state: AssessmentState;
   explanation: string;
+  explanationEvidence?: { start: number; label: string };
   evidence: Evidence[];
   dataCoverage: "direct_evidence" | "community_tags_only" | "no_matching_evidence";
   unresolvedMention?: true;
@@ -70,11 +71,13 @@ function assessCategory(category: Category, matches: Evidence[]): CategoryAssess
   const label = ASSESSMENT_CATEGORIES[category];
   const dataCoverage = evidence.some(({ source }) => source !== "community_tag")
     ? "direct_evidence" : evidence.length ? "community_tags_only" : "no_matching_evidence";
-  let explanation = "No finding was established for this category.";
+  let prefix = "No finding was established for this category.";
+  let suffix = "";
   if (leading?.state === "no_concerns_identified") {
-    explanation = category === "positive"
-      ? `Available evidence highlights ${leading.label}. These features can coexist with content concerns.`
-      : `A documented review found no concerns in this category. ${leading.label}`;
+    prefix = category === "positive"
+      ? "Available evidence highlights "
+      : "A documented review found no concerns in this category. ";
+    if (category === "positive") suffix = ". These features can coexist with content concerns.";
   } else if (leading) {
     const intro = {
       official_classification: "Classification board advice lists",
@@ -85,10 +88,15 @@ function assessCategory(category: Category, matches: Evidence[]): CategoryAssess
       steam_feature: "Steam lists the feature",
       community_tag: "Steam players tagged this game",
     }[leading.source];
-    explanation = `${intro} “${leading.label}”.`;
-    if (dataCoverage === "community_tags_only") explanation += " Check this against the store listing or gameplay before deciding.";
+    prefix = `${intro} “`;
+    suffix = "”.";
+    if (dataCoverage === "community_tags_only") suffix += " Check this against the store listing or gameplay before deciding.";
   }
-  return { category, label, state: leading?.state ?? "insufficient_information", explanation, evidence, dataCoverage };
+  return {
+    category, label, state: leading?.state ?? "insufficient_information", evidence, dataCoverage,
+    explanation: prefix + (leading?.label ?? "") + suffix,
+    explanationEvidence: leading && { start: prefix.length, label: leading.label },
+  };
 }
 
 export function assessSteamGame(metadata: SteamGameMetadata, assessmentDate: string, rules = ASSESSMENT_RULES) {

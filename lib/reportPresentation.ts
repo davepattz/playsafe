@@ -54,6 +54,7 @@ export function reportFinding(finding: CategoryAssessment, coverage: ReportCover
     no_matching_evidence: state === "information_unavailable" ? "Relevant Steam data unavailable"
       : state === "insufficient_information" ? "Evidence is incomplete or inconclusive" : "Relevant Steam data reviewed",
   }[finding.dataCoverage];
+  const unresolved = state === "not_mentioned" || state === "information_unavailable" || state === "insufficient_information";
   const onlineConcernExplanation = finding.category === "onlineInteraction"
     ? "The available evidence suggests players may interact with other people online. Check who your child can play or communicate with and which privacy controls the game offers."
     : finding.category === "userContent"
@@ -61,8 +62,8 @@ export function reportFinding(finding: CategoryAssessment, coverage: ReportCover
       : undefined;
   return {
     state, label, evidenceCoverage,
-    explanation: state === "not_mentioned" || state === "information_unavailable" || state === "insufficient_information"
-      ? descriptions[state] : finding.explanation,
+    explanation: unresolved ? descriptions[state] : finding.explanation,
+    explanationEvidence: unresolved ? undefined : finding.explanationEvidence,
     tooltip: state === "not_mentioned"
       ? `This ${subject} may not be present in the game, but its absence from Steam's data does not guarantee this.`
       : state === "potential_concern" ? onlineConcernExplanation : undefined,
