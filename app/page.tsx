@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import GameSearch from "@/components/GameSearch";
+import RecentlyAssessedGames from "@/components/RecentlyAssessedGames";
 import SearchSiteLayout from "@/components/SearchSiteLayout";
 import { popularSearches } from "@/lib/popularSearches";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -32,6 +34,9 @@ export default function Home() {
           </p>
         </div>
         <GameSearch popularSearches={popularSearches} />
+        <Suspense fallback={null}>
+          <RecentlyAssessedGames />
+        </Suspense>
       </main>
     </SearchSiteLayout>
   );

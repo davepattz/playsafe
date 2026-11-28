@@ -1,7 +1,9 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createMetadataCache } from "./metadataCache.ts";
 import type { MetadataSnapshot } from "./metadataCache";
+import { recentReportCards } from "./reportSeo";
 import { inspectSteamGame, STEAM_CONTEXT } from "./steamMetadata";
 import { positiveEnv, v2Database, v2DatabaseConfigured } from "./v2Database";
 import { allowV2Request } from "./v2RateLimit";
@@ -28,14 +30,31 @@ export async function readPublishedReport(appId: number) {
   return enabled ? readSnapshot(appId) : null;
 }
 
-export async function listFreshReportSnapshots(now: string) {
+export async function listFreshReportSnapshots(now: string, { limit = 500, requireTagList = true } = {}) {
   if (!enabled) return [];
+  const requiredSources = { appdetails: true, getItems: true, ...(requireTagList ? { getTagList: true } : {}) };
   const params = new URLSearchParams({
-    ...selection, expires_at: `gt.${now}`, sources: 'cs.{"appdetails":true,"getItems":true,"getTagList":true}',
-    order: "retrieved_at.desc,app_id.asc", limit: "500",
+    ...selection, expires_at: `gt.${now}`, sources: `cs.${JSON.stringify(requiredSources)}`,
+    order: "retrieved_at.desc,app_id.asc", limit: String(limit),
   });
   const records = await v2Database<MetadataSnapshot[]>(`v2_game_metadata?${params}`);
   return Array.isArray(records) ? records.filter(validSnapshot) : [];
+}
+
+const readRecentReportCards = unstable_cache(async () => {
+  const now = Date.now();
+  const snapshots = await listFreshReportSnapshots(new Date(now).toISOString(), { limit: 18, requireTagList: false });
+  return recentReportCards(snapshots, now);
+}, ["recent-assessed-games"], { revalidate: 300 });
+
+export async function listRecentReportCards() {
+  if (!enabled) return [];
+  try {
+    const cards = await readRecentReportCards();
+    return cards.filter(({ expiresAt }) => expiresAt > Date.now());
+  } catch {
+    return [];
+  }
 }
 
 const cache = createMetadataCache({

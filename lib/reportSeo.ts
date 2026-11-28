@@ -1,5 +1,6 @@
 import type { SteamAssessment } from "./assessmentEngine";
 import type { MetadataSnapshot } from "./metadataCache";
+import { gameReportPath, parseSteamAppId, steamArtworkUrl } from "./gameSearch.ts";
 
 export function isCrawler(agent: string) {
   return /bot\b|crawler|spider|slurp|google-inspectiontool|facebookexternalhit|facebookcatalog|whatsapp|discord|slack|linkedin|pinterest|embedly|skypeuripreview/i.test(agent);
@@ -26,4 +27,19 @@ export function isIndexableReport(snapshot: MetadataSnapshot, assessment: SteamA
 
 export function reportSearchDescription(title: string) {
   return `Considering ${title} for your child? This parents guide covers available age classifications, content concerns, online play and spending on Steam.`;
+}
+
+export function recentReportCards(snapshots: MetadataSnapshot[], now: number) {
+  const cards = [];
+  for (const { metadata, sources, expires_at } of snapshots) {
+    const { appId, appType, title, capsuleImage } = metadata;
+    const expiresAt = Date.parse(expires_at);
+    const artwork = steamArtworkUrl(capsuleImage);
+    if (appType !== "game" || typeof title !== "string" || !title.trim() ||
+        typeof appId !== "number" || !parseSteamAppId(String(appId)) ||
+        !artwork || !(expiresAt > now) || !sources.appdetails || !sources.getItems) continue;
+    cards.push({ appId, title, artwork, href: gameReportPath(appId, title), expiresAt });
+    if (cards.length === 6) break;
+  }
+  return cards;
 }

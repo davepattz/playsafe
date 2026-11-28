@@ -39,12 +39,15 @@ export function sharedStatement(path: string, body?: unknown) {
     const fields = `metadata, sources, coverage,
       to_char(retrieved_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as retrieved_at,
       to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at`;
-    return appId
-      ? { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and app_id=$3 limit 1`,
-        values: [...locale, appId.slice(3)] }
-      : { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and expires_at>$3
-          and sources @> '{"appdetails":true,"getItems":true,"getTagList":true}'::jsonb
-          order by v2_game_metadata.retrieved_at desc, app_id asc limit 500`, values: [...locale, params.get("expires_at")?.slice(3)] };
+    if (appId) return { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and app_id=$3 limit 1`,
+      values: [...locale, appId.slice(3)] };
+    const limit = Number(params.get("limit") ?? 500);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 500) throw new Error("Invalid V2 report list limit");
+    const sources = params.get("sources")?.slice(3) ?? '{"appdetails":true,"getItems":true,"getTagList":true}';
+    return { text: `select ${fields} from public.v2_game_metadata where region=$1 and language=$2 and expires_at>$3
+        and sources @> $4::jsonb
+        order by v2_game_metadata.retrieved_at desc, app_id asc limit $5`,
+      values: [...locale, params.get("expires_at")?.slice(3), sources, limit] };
   }
   if (endpoint === "v2_game_catalogue" && Array.isArray(body)) {
     return {
