@@ -17,6 +17,102 @@ export interface NewsArticle {
 
 export const newsArticles: NewsArticle[] = [
   {
+    slug: "is-blueys-happy-snaps-safe-for-kids",
+    disqusIdentifier: "blog-blueys-happy-snaps-parents-guide",
+    title: "Is Bluey's Happy Snaps Safe for Kids? Our Parent's Guide and Review",
+    publishedAt: "2026-11-28",
+    imageUrl: "/news/blueys-happy-snaps.jpg",
+    imageAlt: "Official artwork for Bluey's Happy Snaps",
+    openingSentence: "Bluey’s latest video game brings creativity, exploration and family fun to the screen. But is it a good choice for younger children?",
+    sections: [
+      {
+        body: [
+          "Few children's television shows capture the joy of imaginative play quite like Bluey. Now, **Bluey's Happy Snaps** brings that same playful spirit to PC and consoles, inviting young players to explore familiar locations, take photographs and create their own adventures.",
+          "Developed by Gameloft Brisbane, the game offers a colourful, relaxed experience aimed at younger players and their families. More importantly, it avoids several of the common concerns parents face when choosing video games.",
+          "So, how does it measure up when it comes to safety, age suitability and positive gameplay?\n",
+        ].join("\n\n")
+      },
+      {
+        heading: "Watch the launch trailer",
+        body: "",
+        youtubeUrl: "https://www.youtube.com/watch?v=yGizTF9pukA"
+      },
+      {
+        heading: "Exploring Bluey's World",
+        body: [
+          "The story begins when Bluey and Bingo discover Dad's old camera. What follows is a photography adventure through familiar locations from the television series, including the Heeler family home, South Bank and other Brisbane landmarks.",
+          "Rather than competing against enemies or racing against the clock, children explore their surroundings, photograph wildlife, discover hidden surprises and complete colourful scrapbooks.",
+          "There are familiar activities inspired by the show, along with puzzles, creative challenges and opportunities to interact with favourite characters.",
+          "The game also features local two-player play, allowing a parent, sibling or friend to join the adventure.",
+          "It's a refreshingly simple concept that places discovery and imagination ahead of competition.",
+        ].join("\n\n")
+      },
+      {
+        heading: "Is Bluey's Happy Snaps Safe for Children?",
+        body: [
+          "**PlaySafe's assessment found no concerns flagged in the available game information.**",
+          "The game also carries reassuring official age classifications:",
+          "- **Australia:** [G (General)](https://www.classification.gov.au/titles/blueys-happy-snaps)\n- **Europe:** [PEGI 3](https://www.nintendo.com/en-gb/Games/Nintendo-Switch-games/Bluey-s-Happy-Snaps-3147278.html)\n- **North America:** ESRB E (Everyone)",
+          "PlaySafe's safety report found no identified concerns across categories including violence, graphic content, strong language, sexual content, frightening themes, gambling and mature subject matter.",
+          "Importantly, this means those concerns were not identified in the available evidence, rather than providing an absolute guarantee that every moment of gameplay will suit every child.",
+          "For families looking for a gentle introduction to gaming, the available information is encouraging.",
+        ].join("\n\n")
+      },
+      {
+        heading: "No Online Play or In-Game Purchases",
+        body: [
+          "Two of the biggest considerations for parents are online interaction and spending.",
+          "Bluey's Happy Snaps avoids both.",
+          "According to the developer and [Steam store listing](https://store.steampowered.com/app/3064040/Blueys_Happy_Snaps/), the game features **no online play and no in-game purchases**.",
+          "Although Steam lists the game as multiplayer, this refers to local two-player gameplay rather than online gaming with strangers.",
+          "That means children aren't entering public multiplayer matches or communicating with unknown players through the game's own online systems.",
+          "There are also no in-game microtransactions encouraging children to spend money during play.",
+          "Parents should be aware that separate Standard and Deluxe editions are available, with the Deluxe Edition including additional content at an extra purchase price.",
+          "For younger players, the absence of online interaction and in-game spending removes two common sources of concern.",
+        ].join("\n\n")
+      },
+      {
+        heading: "Encouraging Positive Play Beyond the Screen",
+        body: [
+          "One of the game's strongest features is its emphasis on creativity.",
+          "Children are encouraged to explore, observe their surroundings, solve simple challenges and experiment with photography.",
+          "The scrapbooking activities provide opportunities for self-expression, while the game's relaxed structure allows children to progress at their own pace.",
+          "There's even a feature called *Play for Real Life*, which suggests activities families can recreate away from the screen, such as building cardboard castles or creating imaginative games using household objects.",
+          "[Research involving Queensland University of Technology and the Australian Research Council Centre of Excellence for the Digital Child](https://en.bandainamcoent.eu/bluey/news/wackadoo-blueys-happy-snaps-launches-today-consoles-and-pc) also highlighted the game's support for creativity, independent decision-making and imaginative play.",
+          "It's an appealing approach: digital entertainment that encourages children to keep playing after the controller has been put down.",
+        ].join("\n\n")
+      },
+      {
+        heading: "What Should Parents Consider?",
+        body: [
+          "Although the game is designed for young players, some children may need help understanding objectives, locating particular photography subjects or navigating the game world.",
+          "Its two-player mode is also somewhat uneven. One player takes the lead with the camera while the other has a more limited supporting role, so families with two children may need to take turns.",
+          "Older children who prefer fast-paced action or complex challenges may also find the experience too simple.",
+          "For preschool and early-primary-school children, however, that slower pace could be one of its biggest strengths.",
+        ].join("\n\n")
+      },
+      {
+        heading: "PlaySafe's Recommendation",
+        body: [
+          "**Recommended — particularly for younger children and families looking for a gentle, creative gaming experience.**",
+          "Bluey's Happy Snaps stands out for its family-friendly content, official age classifications, offline gameplay and lack of in-game purchases.",
+          "Its focus on imagination, exploration and shared play makes it an appealing option for children experiencing video games for the first time.",
+          "We think it's particularly worth considering for children around **4–8 years old**, although younger players may enjoy it with adult assistance, and older Bluey fans may still appreciate the experience.",
+          "As with any game, parents should consider their child's interests, abilities and individual sensitivities.",
+          "For families who enjoy the television series, Bluey's Happy Snaps looks like a positive way to bring a little more of Bluey's world into playtime.",
+        ].join("\n\n")
+      },
+      {
+        heading: "Check the Full Safety Report",
+        body: [
+          "Want to know more before deciding?",
+          "[View the full Bluey's Happy Snaps safety report on PlaySafe.games](/games/3064040/blueys-happy-snaps) for age classifications, content considerations, gameplay features, online safety and spending information.",
+          "*About this review: This is an evidence-based parental safety review using available game information, official classifications and PlaySafe's assessment. It is not a hands-on gameplay review.*",
+        ].join("\n\n")
+      }
+    ]
+  },
+  {
     slug: "top-10-video-games-for-kids-under-5-on-steam",
     disqusIdentifier: "news-top-10-games-for-kids-under-5",
     title: "Top 10 Video Games for Kids Under 5 on Steam",
@@ -145,5 +241,6 @@ export function formatNewsDate(date: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(date));
 }

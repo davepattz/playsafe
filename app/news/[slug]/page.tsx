@@ -23,6 +23,15 @@ function getYouTubeEmbedUrl(youtubeUrl: string) {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : youtubeUrl;
 }
 
+function articleText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\((?:https:\/\/|\/)[^)]+\))/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*") && part.endsWith("*")) return <em key={index}>{part.slice(1, -1)}</em>;
+    const link = /^\[([^\]]+)\]\(((?:https:\/\/|\/(?!\/))[^)]+)\)$/.exec(part);
+    return link ? <a key={index} href={link[2]} className="font-bold text-[#563569] underline underline-offset-4">{link[1]}</a> : part;
+  });
+}
+
 export function generateStaticParams() {
   return getAllNewsArticles().map((article) => ({
     slug: article.slug,
@@ -82,7 +91,13 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
                         allowFullScreen />
                     </div>
                   )}
-                  <p className="leading-relaxed text-[#514960] sm:text-lg">{section.body}</p>
+                  {section.body && <div className="space-y-3 leading-relaxed text-[#514960] sm:text-lg">
+                    {section.body.split("\n\n").map((block, index) => block.startsWith("- ")
+                      ? <ul key={index} className="list-disc space-y-1 pl-6">
+                        {block.split("\n").map((item) => <li key={item}>{articleText(item.slice(2))}</li>)}
+                      </ul>
+                      : <p key={index}>{articleText(block)}</p>)}
+                  </div>}
                   {section.playStyles && section.playStyles.length > 0 && (
                     <div className="mt-4">
                       <h3 className="text-sm font-bold">Play styles</h3>
