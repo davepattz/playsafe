@@ -5,7 +5,7 @@ import type { SteamAssessment } from "@/lib/assessmentEngine";
 import type { SteamGameMetadata } from "@/lib/steamMetadata";
 import type { Category } from "@/lib/assessmentRules";
 import { gameReportPath } from "@/lib/gameSearch";
-import { positiveGameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus } from "@/lib/reportPresentation";
+import { gameplayFeatures, reportCoverage, reportFinding, reportOverviewStatus } from "@/lib/reportPresentation";
 import type { AssessmentSources } from "@/lib/reportPresentation";
 import { reportClassifications } from "@/lib/reportClassifications";
 import { retailerSearchLinks } from "@/lib/retailers";
@@ -15,7 +15,7 @@ import { ReportFinding, ReportInfoIcon, ReportSection, ReportStatus } from "./Re
 
 const content: Category[] = ["violence", "graphicViolence", "strongLanguage", "sexualContent", "substances", "horror", "gambling", "matureThemes"];
 const sections = [
-  ["classifications", "Age classifications"], ["positive", "Positive gameplay"], ["content", "Content suitability"],
+  ["classifications", "Age classifications"], ["positive", "Gameplay features"], ["content", "Content suitability"],
   ["online", "Online safety"], ["spending", "Spending"], ["transparency", "How this report works"],
 ];
 
@@ -65,7 +65,7 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
 }) {
   const coverage = reportCoverage(game, sources);
   const overview = reportOverviewStatus(assessment.categories, coverage);
-  const positive = positiveGameplayFeatures(game.tags, assessment.categories);
+  const features = gameplayFeatures(game, assessment.categories);
   const multiplayer = [...new Set(game.multiplayer?.map(({ name }) => name))];
   const headerImage = steamArtworkUrl(game.headerImage);
   const findings = (categories: Category[]) => <div className="grid gap-3 sm:grid-cols-2">
@@ -121,10 +121,10 @@ export default function GameReport({ game, assessment, sources, incomplete, clas
         {sections.map(([id, title]) => <a key={id} href={`#${id}`} className="inline-flex min-h-11 items-center underline underline-offset-4">{title}</a>)}
       </nav>
       <Classifications game={game} sourcesAvailable={classificationSourcesAvailable} />
-      <ReportSection id="positive" title="Positive gameplay features">
-        <p className="mb-2 text-sm text-[#514960]">Steam’s feature listings and community tags can point to creative play, learning, exploration, problem-solving or local play. These features can coexist with content concerns.</p>
-        {positive.length > 0 && <ul aria-label="Gameplay feature explanations" className="mb-4 flex flex-wrap items-start gap-2">
-          {positive.map(({ label, description }) => <li key={label} className="max-w-full">
+      <ReportSection id="positive" title="Gameplay features">
+        <p className="mb-2 text-sm text-[#514960]">Steam’s feature listings and community tags describe how you can play this game and what kinds of activities it offers.</p>
+        {features.length > 0 && <ul aria-label="Gameplay feature explanations" className="mb-4 flex flex-wrap items-start gap-2">
+          {features.map(({ label, description }) => <li key={label} className="max-w-full">
             <details>
               <summary className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-[#f2e9f8] px-3 py-1 text-sm font-bold text-[#563569] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#563569]">
                 <ReportInfoIcon />

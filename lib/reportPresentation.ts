@@ -126,6 +126,46 @@ export function positiveGameplayFeatures(tags: SteamGameMetadata["tags"], findin
   return [...features].map(([label, description]) => ({ label, description }));
 }
 
+const playModeDescriptions = new Map([
+  ["singleplayer", "One player can play on their own."],
+  ["multiplayer", "Two or more players can play together."],
+  ["coop", "Players can work together toward a shared goal."],
+  ["onlinecoop", "Players can work together over the internet."],
+  ["onlinemultiplayer", "Two or more players can play together over the internet."],
+  ["localcoop", positiveTagDescriptions.get("Local Co-Op")!],
+  ["localmultiplayer", positiveTagDescriptions.get("Local Multiplayer")!],
+  ["pvp", "Players can compete against each other."],
+  ["onlinepvp", "Players can compete against each other over the internet."],
+  ["localpvp", "Players in the same room can compete against each other."],
+  ["lancoop", "Players can work together over a local network."],
+  ["lanpvp", "Players can compete against each other over a local network."],
+  ["lanmultiplayer", "Players can play together over a local network."],
+  ["crossplatformmultiplayer", "Players on supported platforms can play together."],
+  ["mmo", "Many players can play together online."],
+  ["massivelymultiplayer", "Many players can play together online."],
+  ["remoteplaytogether", "Friends can join a host's local multiplayer session over the internet through Steam Remote Play Together."],
+]);
+
+const featureKey = (label: string) => label.toLowerCase().replaceAll(/[\s-]/g, "");
+
+export function gameplayFeatures(
+  game: Pick<SteamGameMetadata, "categories" | "multiplayer" | "tags">,
+  findings: SteamAssessment["categories"],
+) {
+  const features = new Map<string, { label: string; description: string }>();
+  for (const { name } of [...(game.categories ?? []), ...(game.multiplayer ?? []), ...(game.tags ?? [])]) {
+    if (!name) continue;
+    const key = featureKey(name);
+    const description = playModeDescriptions.get(key) ?? positiveListedDescriptions.get(name);
+    if (description && !features.has(key)) features.set(key, { label: name, description });
+  }
+  for (const feature of positiveGameplayFeatures(game.tags, findings)) {
+    const key = featureKey(feature.label);
+    if (!features.has(key)) features.set(key, feature);
+  }
+  return [...features.values()];
+}
+
 export function australianRatingLabel(value: string) {
   const code = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (code === "MA15") return "MA 15+";

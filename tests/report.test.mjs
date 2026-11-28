@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { australianRatingLabel, positiveGameplayFeatures, positiveSteamTags, reportCoverage, reportFinding, reportOverview, reportOverviewStatus } from "../lib/reportPresentation.ts";
+import { australianRatingLabel, gameplayFeatures, positiveGameplayFeatures, positiveSteamTags, reportCoverage, reportFinding, reportOverview, reportOverviewStatus } from "../lib/reportPresentation.ts";
 import { assessSteamGame } from "../lib/assessmentEngine.ts";
 
 const completeSources = { appdetails: true, getItems: true };
@@ -19,6 +19,19 @@ function present(game, sources = completeSources) {
     overall: reportOverviewStatus(categories, coverage),
   };
 }
+
+test("gameplay chips combine listed play modes and community features without duplicates", () => {
+  const game = {
+    ...cachedGame,
+    categories: [...cachedGame.categories, { id: 38, name: "Online Co-op" }, { id: 48, name: "LAN Co-op" }, { id: 35, name: "In-App Purchases" }],
+    multiplayer: [{ id: 38, name: "Online Co-op" }],
+    tags: [{ name: "Online Co-Op" }, { name: "Local Co-Op" }, { name: "Puzzle" }],
+  };
+  assert.deepEqual(
+    gameplayFeatures(game, []).map(({ label }) => label),
+    ["Single-player", "Online Co-op", "LAN Co-op", "Local Co-Op", "Puzzle"],
+  );
+});
 
 test("cached Steam data distinguishes unmentioned concerns across all report sections", () => {
   const { categories, overall } = present(JSON.parse(JSON.stringify(cachedGame)));
